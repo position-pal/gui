@@ -1,10 +1,10 @@
 <template>
-  <div>
-    <!-- Home Content -->
-    <div class="container mt-5">
-      <h1>Welcome to VueApp</h1>
-      <p class="lead">This is the home page of your Vue application.</p>
-    </div>
+  <!-- Home Content -->
+  <div class="container mt-5">
+    <h1>Welcome to Position Pal</h1>
+    <p class="lead">
+      Share the location with whomever you want, set the route, and chat with whomever you want.
+    </p>
   </div>
 </template>
 
@@ -15,5 +15,5 @@ export default {
 </script>
 
 <style>
-/* Stile personalizzato opzionale */
+/* Optional custom style */
 </style>

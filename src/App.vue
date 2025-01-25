@@ -1,28 +1,23 @@
 <template>
-  <div id="app" class="d-flex flex-column min-vh-100">
-    <!-- Navbar sempre visibile -->
-    <Navbar />
+  <!-- Dynamic Content -->
+  <main>
+    <router-view />
+  </main>
 
-    <!-- Contenuto dinamico delle pagine -->
-    <main class="flex-grow-1">
-      <router-view />
-    </main>
-
-    <!-- Footer opzionale -->
-  </div>
+  <TabBar />
 </template>
 
 <script>
-import Navbar from '@/components/Navbar.vue'
+import TabBar from './components/TabBar.vue'
 
 export default {
   name: 'App',
   components: {
-    Navbar,
+    TabBar,
   },
 }
 </script>
 
 <style>
-/* Stile personalizzato globale */
+/* Optional custom style */
 </style>
