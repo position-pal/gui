@@ -1,7 +1,16 @@
 <template>
   <nav class="navbar navbar-expand-lg bg-light">
     <div class="container-fluid">
-      <router-link to="/" class="navbar-brand" active-class="active">PositionPal</router-link>
+      <router-link to="/" class="navbar-brand" active-class="active">
+        <img
+          src="/src/assets/logo.svg"
+          alt="Logo"
+          width="30"
+          height="24"
+          class="d-inline-block align-text-top"
+        />
+        PositionPal
+      </router-link>
       <button
         class="navbar-toggler"
         type="button"
@@ -16,16 +25,10 @@
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav">
           <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="#">Home</a>
+            <router-link to="/aboutus" class="nav-link">About us</router-link>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">Features</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">Pricing</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link disabled">Disabled</a>
+            <router-link to="/login" class="nav-link">Login</router-link>
           </li>
         </ul>
       </div>
@@ -40,5 +43,5 @@ export default {
 </script>
 
 <style scoped>
-/* Stile personalizzato opzionale */
+/* Optional custom style */
 </style>
