@@ -95,7 +95,6 @@ nav {
   align-items: center;
   background: #fff;
   padding: 1.5rem 2rem;
-  border-radius: 0 0 30px 30px;
   box-shadow: 0 1px 15px rgba(0, 0, 0, 0.1);
 }
 
