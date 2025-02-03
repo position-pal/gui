@@ -18,3 +18,27 @@ body {
   display: flex;
   flex-direction: column;
 }
+
+.primary-color {
+  color: #004aad !important;
+}
+
+.primary-bg {
+  background-color: #004aad !important;
+}
+
+.secondary-color {
+  color: #38b6ff !important;
+}
+
+.secondary-bg {
+  background-color: #38b6ff !important;
+}
+
+.detail-color {
+  color: #5271ff !important;
+}
+
+.detail-bg {
+  background-color: #5271ff !important;
+}
