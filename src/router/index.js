@@ -4,6 +4,7 @@ import {
 } from 'vue-router';
 import HomePage from '@/views/HomePage.vue';
 import NotFound from '@/views/NotFound.vue';
+import LoginPage from '@/views/LoginPage.vue';
 
 // add routes map, chat, profile, login
 const routes = [{
@@ -24,7 +25,7 @@ const routes = [{
   {
     path: '/login',
     name: 'Login',
-    component: NotFound,
+    component: LoginPage,
   },
   {
     path: "/map",
