@@ -1,16 +1,64 @@
 <template>
-  <div class="text-container">
-    <h1 class="pb-4 display-1">Position Pal</h1>
-    <h5>Share your location</h5>
-    <h5>Chat with friends</h5>
-    <h5>Feel safe</h5>
-    <router-link
-      to="/login"
-      class="btn btn-lg primary-bg text-white mt-5"
-      style="box-shadow: 0 2px 25px #38b6ff"
-    >
-      Login
-    </router-link>
+  <div class="login-container">
+    <div class="card p-4">
+      <div class="form-container">
+        <transition name="slide">
+          <div v-if="isLogin" key="login" class="form-slide">
+            <h3 class="text-center">Login</h3>
+            <form @submit.prevent="handleLogin">
+              <div class="mb-3">
+                <label for="login-email" class="form-label">Email</label>
+                <input v-model="loginData.email" type="email" class="form-control" required />
+              </div>
+              <div class="mb-3">
+                <label for="login-password" class="form-label">Password</label>
+                <input v-model="loginData.password" type="password" class="form-control" required />
+              </div>
+              <button type="submit" class="btn btn-primary w-100">Accedi</button>
+            </form>
+          </div>
+
+          <div v-else key="register" class="form-slide">
+            <h3 class="text-center">Registrazione</h3>
+            <form @submit.prevent="handleRegister">
+              <div class="row mb-3 g-2">
+                <div class="col-6">
+                  <label for="register-name" class="form-label">Nome</label>
+                  <input v-model="registerData.name" type="text" class="form-control" required />
+                </div>
+                <div class="col-6">
+                  <label for="register-surname" class="form-label">Cognome</label>
+                  <input v-model="registerData.surname" type="text" class="form-control" required />
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="register-email" class="form-label">Email</label>
+                <input v-model="registerData.email" type="email" class="form-control" required />
+              </div>
+              <div class="mb-3">
+                <label for="register-password" class="form-label">Password</label>
+                <input
+                  v-model="registerData.password"
+                  type="password"
+                  class="form-control"
+                  required
+                />
+              </div>
+              <button type="submit" class="btn btn-success w-100">Registrati</button>
+            </form>
+          </div>
+        </transition>
+      </div>
+
+      <div class="toggle-container">
+        <button @click="isLogin = true" :class="{ active: isLogin }" class="toggle-btn">
+          Login
+        </button>
+        <button @click="isLogin = false" :class="{ active: !isLogin }" class="toggle-btn">
+          Registrati
+        </button>
+      </div>
+    </div>
   </div>
   <div class="gradient-bg">
     <svg xmlns="http://www.w3.org/2000/svg">
@@ -27,14 +75,6 @@
         </filter>
       </defs>
     </svg>
-    <div class="d-flex justify-content-center align-items-center pt-5">
-      <img
-        src="@/assets/home_logo.png"
-        alt="Position Pal Logo"
-        class="img-fluid"
-        style="background: none; width: 27vh; height: auto"
-      />
-    </div>
     <div class="gradients-container">
       <div class="g1"></div>
       <div class="g2"></div>
@@ -47,15 +87,108 @@
 </template>
 
 <script>
+import { ref } from 'vue'
+
 export default {
-  name: 'HomePage',
+  setup() {
+    const isLogin = ref(true)
+
+    const loginData = ref({
+      email: '',
+      password: '',
+    })
+
+    const registerData = ref({
+      name: '',
+      surname: '',
+      email: '',
+      password: '',
+    })
+
+    const handleLogin = () => {
+      console.log('Login:', loginData.value)
+    }
+
+    const handleRegister = () => {
+      console.log('Registrazione:', registerData.value)
+    }
+
+    return {
+      isLogin,
+      loginData,
+      registerData,
+      handleLogin,
+      handleRegister,
+    }
+  },
 }
 </script>
 
 <style>
-@font-face {
-  font-family: 'Playlist Script';
-  src: url('@/assets/fonts/PlaylistScript.otf');
+.card {
+  margin: 1vh auto !important;
+  transition: transform 0.5s;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  border-radius: 50px;
+  overflow: hidden;
+  padding: 20px;
+  background: white;
+}
+
+.toggle-container {
+  display: flex;
+  justify-content: center;
+  background-color: #f8f9fa;
+  border-radius: 50px;
+  padding: 5px;
+  margin-top: 20px;
+  width: 100%;
+}
+
+.toggle-btn {
+  flex: 1;
+  cursor: pointer;
+  padding: 10px 0;
+  border: none;
+  background: none;
+  text-align: center;
+  font-weight: bold;
+  border-radius: 50px;
+  transition: background 0.3s ease-in-out;
+}
+
+.toggle-btn.active {
+  background-color: #007bff;
+  color: white;
+}
+
+.form-control,
+.btn {
+  border-radius: 50px;
+}
+
+/* Fix per Nome e Cognome */
+.row .col-6 {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Animazione slide */
+.slide-enter-active,
+.slide-leave-active {
+  transition:
+    transform 0.3s ease-in-out,
+    opacity 0.3s ease-in-out;
+}
+
+.slide-enter-from {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.slide-leave-to {
+  opacity: 0;
+  transform: translateX(-100%);
 }
 
 html,
@@ -64,28 +197,21 @@ body {
   padding: 0;
 }
 
-.text-container {
+.login-container {
   z-index: 100;
   width: 100vw;
   height: 100vh;
-  display: flex;
-  flex-direction: column;
   position: absolute;
   top: 0;
   left: 0;
+  padding: 1vh;
   justify-content: center;
   align-items: center;
-  font-size: 96px;
   color: white;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  text-shadow: 1px 1px rgba(0, 0, 0, 0.1);
-}
-
-.text-container h1 {
-  font-family: 'Playlist Script';
 }
 
 :root {
@@ -105,9 +231,11 @@ body {
   0% {
     transform: rotate(0deg);
   }
+
   50% {
     transform: rotate(180deg);
   }
+
   100% {
     transform: rotate(360deg);
   }
@@ -117,57 +245,72 @@ body {
   0% {
     transform: rotate(0deg);
   }
+
   50% {
     transform: rotate(180deg);
   }
+
   100% {
     transform: rotate(360deg);
   }
 }
+
 @-webkit-keyframes moveVertical {
   0% {
     transform: translateY(-50%);
   }
+
   50% {
     transform: translateY(50%);
   }
+
   100% {
     transform: translateY(-50%);
   }
 }
+
 @keyframes moveVertical {
   0% {
     transform: translateY(-50%);
   }
+
   50% {
     transform: translateY(50%);
   }
+
   100% {
     transform: translateY(-50%);
   }
 }
+
 @-webkit-keyframes moveHorizontal {
   0% {
     transform: translateX(-50%) translateY(-10%);
   }
+
   50% {
     transform: translateX(50%) translateY(10%);
   }
+
   100% {
     transform: translateX(-50%) translateY(-10%);
   }
 }
+
 @keyframes moveHorizontal {
   0% {
     transform: translateX(-50%) translateY(-10%);
   }
+
   50% {
     transform: translateX(50%) translateY(10%);
   }
+
   100% {
     transform: translateX(-50%) translateY(-10%);
   }
 }
+
 .gradient-bg {
   width: 100vw;
   height: 100vh;
@@ -177,6 +320,7 @@ body {
   top: 0;
   left: 0;
 }
+
 .gradient-bg svg {
   position: fixed;
   top: 0;
@@ -184,11 +328,13 @@ body {
   width: 0;
   height: 0;
 }
+
 .gradient-bg .gradients-container {
   filter: url(#goo) blur(40px);
   width: 100%;
   height: 100%;
 }
+
 .gradient-bg .g1 {
   position: absolute;
   background: radial-gradient(
@@ -207,6 +353,7 @@ body {
   animation: moveVertical 30s ease infinite;
   opacity: 1;
 }
+
 .gradient-bg .g2 {
   position: absolute;
   background: radial-gradient(
@@ -224,6 +371,7 @@ body {
   animation: moveInCircle 20s reverse infinite;
   opacity: 1;
 }
+
 .gradient-bg .g3 {
   position: absolute;
   background: radial-gradient(
@@ -242,6 +390,7 @@ body {
   animation: moveInCircle 40s linear infinite;
   opacity: 1;
 }
+
 .gradient-bg .g4 {
   position: absolute;
   background: radial-gradient(
@@ -260,6 +409,7 @@ body {
   animation: moveHorizontal 40s ease infinite;
   opacity: 0.7;
 }
+
 .gradient-bg .g5 {
   position: absolute;
   background: radial-gradient(
@@ -278,6 +428,7 @@ body {
   animation: moveInCircle 20s ease infinite;
   opacity: 1;
 }
+
 .gradient-bg .interactive {
   position: absolute;
   background: radial-gradient(
