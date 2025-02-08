@@ -1,8 +1,8 @@
 <template>
   <div class="login-container">
-    <div class="card p-4">
+    <div class="card p-4" ref="cardContainer" :style="{ height: cardHeight + 'px' }">
       <div class="form-container">
-        <transition name="slide">
+        <transition name="slide" mode="out-in" @after-enter="updateHeight">
           <div v-if="isLogin" key="login" class="form-slide">
             <h3 class="text-center">Login</h3>
             <form @submit.prevent="handleLogin">
@@ -14,20 +14,20 @@
                 <label for="login-password" class="form-label">Password</label>
                 <input v-model="loginData.password" type="password" class="form-control" required />
               </div>
-              <button type="submit" class="btn btn-primary w-100">Accedi</button>
+              <button type="submit" class="btn btn-primary w-100">Login</button>
             </form>
           </div>
 
           <div v-else key="register" class="form-slide">
-            <h3 class="text-center">Registrazione</h3>
+            <h3 class="text-center">Sign In</h3>
             <form @submit.prevent="handleRegister">
               <div class="row mb-3 g-2">
                 <div class="col-6">
-                  <label for="register-name" class="form-label">Nome</label>
+                  <label for="register-name" class="form-label">Name</label>
                   <input v-model="registerData.name" type="text" class="form-control" required />
                 </div>
                 <div class="col-6">
-                  <label for="register-surname" class="form-label">Cognome</label>
+                  <label for="register-surname" class="form-label">Surname</label>
                   <input v-model="registerData.surname" type="text" class="form-control" required />
                 </div>
               </div>
@@ -44,22 +44,24 @@
                   required
                 />
               </div>
-              <button type="submit" class="btn btn-success w-100">Registrati</button>
+              <button type="submit" class="btn btn-success w-100">Sign In</button>
             </form>
           </div>
         </transition>
       </div>
 
       <div class="toggle-container">
-        <button @click="isLogin = true" :class="{ active: isLogin }" class="toggle-btn">
+        <!-- Abbiamo modificato i pulsanti per utilizzare il metodo toggleForm -->
+        <button @click="toggleForm(true)" :class="{ active: isLogin }" class="toggle-btn">
           Login
         </button>
-        <button @click="isLogin = false" :class="{ active: !isLogin }" class="toggle-btn">
+        <button @click="toggleForm(false)" :class="{ active: !isLogin }" class="toggle-btn">
           Registrati
         </button>
       </div>
     </div>
   </div>
+
   <div class="gradient-bg">
     <svg xmlns="http://www.w3.org/2000/svg">
       <defs>
@@ -87,23 +89,25 @@
 </template>
 
 <script>
-import { ref } from 'vue'
+import { ref, nextTick, onMounted } from 'vue'
 
 export default {
   setup() {
     const isLogin = ref(true)
-
     const loginData = ref({
       email: '',
       password: '',
     })
-
     const registerData = ref({
       name: '',
       surname: '',
       email: '',
       password: '',
     })
+
+    // Ref per la card e proprietà per l'altezza
+    const cardContainer = ref(null)
+    const cardHeight = ref(0)
 
     const handleLogin = () => {
       console.log('Login:', loginData.value)
@@ -113,12 +117,40 @@ export default {
       console.log('Registrazione:', registerData.value)
     }
 
+    // Funzione per aggiornare l'altezza della card in base al contenuto
+    const updateHeight = () => {
+      nextTick(() => {
+        if (cardContainer.value) {
+          const formContainer = cardContainer.value.querySelector('.form-container')
+          if (formContainer) {
+            cardHeight.value = formContainer.scrollHeight * 1.5
+          }
+        }
+      })
+    }
+
+    onMounted(() => {
+      updateHeight()
+    })
+
+    // Metodo per cambiare forma e aggiornare l'altezza in modo fluido
+    const toggleForm = (login) => {
+      isLogin.value = login
+      nextTick(() => {
+        updateHeight()
+      })
+    }
+
     return {
       isLogin,
       loginData,
       registerData,
       handleLogin,
       handleRegister,
+      cardContainer,
+      cardHeight,
+      toggleForm,
+      updateHeight,
     }
   },
 }
@@ -126,8 +158,9 @@ export default {
 
 <style>
 .card {
-  margin: 1vh auto !important;
-  transition: transform 0.5s;
+  height: calc(100vh - 1vh); /* Altezza dinamica dello schermo con margine verticale */
+  width: calc(98%);
+  transition: height 0.3s ease;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
   border-radius: 50px;
   overflow: hidden;
@@ -167,10 +200,22 @@ export default {
   border-radius: 50px;
 }
 
-/* Fix per Nome e Cognome */
-.row .col-6 {
-  display: flex;
-  flex-direction: column;
+/* Animazione slide per i form */
+.slide-enter-active,
+.slide-leave-active {
+  transition:
+    transform 0.3s ease-in-out,
+    opacity 0.3s ease-in-out;
+}
+
+.slide-enter-from {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.slide-leave-to {
+  opacity: 0;
+  transform: translateX(-100%);
 }
 
 /* Animazione slide */
@@ -205,7 +250,8 @@ body {
   top: 0;
   left: 0;
   padding: 1vh;
-  justify-content: center;
+  display: flex; /* Aggiunto per abilitare Flexbox */
+  justify-content: center; /* Centra orizzontalmente */
   align-items: center;
   color: white;
   -webkit-user-select: none;
