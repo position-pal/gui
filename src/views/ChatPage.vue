@@ -22,7 +22,7 @@
 
     <div class="chat-input border-top p-3">
       <form class="input-group">
-        <input type="text" class="form-control" placeholder="Type your message...">
+        <input type="text" class="form-control" placeholder="Type your message..." />
         <button class="btn btn-primary" type="submit">Send</button>
       </form>
     </div>
@@ -31,7 +31,7 @@
 
 <script>
 export default {
-  name: 'Chat',
+  name: 'ChatPage',
 }
 </script>
 
@@ -39,10 +39,7 @@ export default {
 .chat-view {
   display: flex;
   flex-direction: column;
-  /* Subtract the TabBar height (assuming it's 56px - adjust this value based on your TabBar height) */
-  height: calc(100vh - 56px);
-  /* Ensure the chat view doesn't overflow into the TabBar area */
-  margin-bottom: 56px;
+  height: 100%;
 }
 
 .chat-header {
@@ -56,7 +53,6 @@ export default {
 
 .chat-input {
   flex-shrink: 0;
-  /* Ensure the input stays above the TabBar */
   background: white;
 }
 
