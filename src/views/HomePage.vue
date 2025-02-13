@@ -172,7 +172,8 @@ export default {
 }
 .gradient-bg {
   width: 100vw;
-  height: 100%;
+  height: 100% !important;
+  z-index: 10;
   position: relative;
   overflow: hidden;
   background: linear-gradient(40deg, var(--color-bg1), var(--color-bg2));

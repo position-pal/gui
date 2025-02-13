@@ -91,7 +91,7 @@ export default {
 
 nav {
   position: relative;
-  z-index: 1000;
+  z-index: 1000 !important;
   display: flex;
   justify-content: space-around;
   align-items: center;
