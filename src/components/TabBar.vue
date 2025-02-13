@@ -1,5 +1,5 @@
 <template>
-  <nav class="fixed-bottom">
+  <nav>
     <router-link class="active tabbar-element" to="/">
       <h3 class="bi bi-house"></h3>
       <span> Home </span>
@@ -90,6 +90,8 @@ export default {
 }
 
 nav {
+  position: relative;
+  z-index: 1000;
   display: flex;
   justify-content: space-around;
   align-items: center;
