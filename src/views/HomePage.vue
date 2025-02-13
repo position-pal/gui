@@ -1,43 +1,45 @@
 <template>
-  <div class="text-container">
-    <h1 class="pb-4 display-1">Position Pal</h1>
-    <h5>Share your location</h5>
-    <h5>Chat with friends</h5>
-    <h5>Feel safe</h5>
-    <button class="btn btn-lg primary-bg text-white mt-5" style="box-shadow: 0 2px 25px #38b6ff">
-      Login
-    </button>
-  </div>
-  <div class="gradient-bg">
-    <svg xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <filter id="goo">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
-          <feColorMatrix
-            in="blur"
-            mode="matrix"
-            values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -8"
-            result="goo"
-          />
-          <feBlend in="SourceGraphic" in2="goo" />
-        </filter>
-      </defs>
-    </svg>
-    <div class="d-flex justify-content-center align-items-center pt-5">
-      <img
-        src="@/assets/home_logo.png"
-        alt="Position Pal Logo"
-        class="img-fluid"
-        style="background: none; width: 27vh; height: auto"
-      />
+  <div class="home-view">
+    <div class="text-container">
+      <h1 class="pb-4 display-1">Position Pal</h1>
+      <h5>Share your location</h5>
+      <h5>Chat with friends</h5>
+      <h5>Feel safe</h5>
+      <button class="btn btn-lg primary-bg text-white mt-5" style="box-shadow: 0 2px 25px #38b6ff">
+        Login
+      </button>
     </div>
-    <div class="gradients-container">
-      <div class="g1"></div>
-      <div class="g2"></div>
-      <div class="g3"></div>
-      <div class="g4"></div>
-      <div class="g5"></div>
-      <div class="interactive"></div>
+    <div class="gradient-bg">
+      <svg xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="goo">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+            <feColorMatrix
+              in="blur"
+              mode="matrix"
+              values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -8"
+              result="goo"
+            />
+            <feBlend in="SourceGraphic" in2="goo" />
+          </filter>
+        </defs>
+      </svg>
+      <div class="d-flex justify-content-center align-items-center pt-5">
+        <img
+          src="@/assets/home_logo.png"
+          alt="Position Pal Logo"
+          class="img-fluid"
+          style="background: none; width: 27vh; height: auto"
+        />
+      </div>
+      <div class="gradients-container">
+        <div class="g1"></div>
+        <div class="g2"></div>
+        <div class="g3"></div>
+        <div class="g4"></div>
+        <div class="g5"></div>
+        <div class="interactive"></div>
+      </div>
     </div>
   </div>
 </template>
@@ -54,16 +56,16 @@ export default {
   src: url('@/assets/fonts/PlaylistScript.otf');
 }
 
-html,
-body {
-  margin: 0;
-  padding: 0;
+.home-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .text-container {
   z-index: 100;
   width: 100vw;
-  height: 100vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
   position: absolute;
@@ -166,7 +168,7 @@ body {
 }
 .gradient-bg {
   width: 100vw;
-  height: 100vh;
+  height: 100%;
   position: relative;
   overflow: hidden;
   background: linear-gradient(40deg, var(--color-bg1), var(--color-bg2));
