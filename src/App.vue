@@ -1,10 +1,12 @@
 <template>
   <!-- Dynamic Content -->
-  <main>
+  <main class="row">
     <router-view />
   </main>
 
-  <TabBar />
+  <div class="row">
+    <TabBar />
+  </div>
 </template>
 
 <script>
