@@ -3,6 +3,7 @@ import {
   createWebHistory
 } from 'vue-router';
 import HomePage from '@/views/HomePage.vue';
+import ChatPage from '@/views/ChatPage.vue';
 import NotFound from '@/views/NotFound.vue';
 import LoginPage from '@/views/LoginPage.vue';
 
@@ -15,7 +16,7 @@ const routes = [{
   {
     path: '/chat',
     name: 'Chat',
-    component: NotFound,
+    component: ChatPage,
   },
   {
     path: '/profile',

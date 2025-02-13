@@ -1,9 +1,7 @@
 <template>
-  <!-- Dynamic Content -->
-  <main>
+  <main class="main-content">
     <router-view />
   </main>
-
   <TabBar />
 </template>
 
@@ -19,5 +17,9 @@ export default {
 </script>
 
 <style>
-/* Optional custom style */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
 </style>
