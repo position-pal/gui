@@ -3,6 +3,7 @@ import {
   createWebHistory
 } from 'vue-router';
 import HomePage from '@/views/HomePage.vue';
+import Chat from '@/views/Chat.vue';
 import NotFound from '@/views/NotFound.vue';
 
 // add routes map, chat, profile, login
@@ -14,7 +15,7 @@ const routes = [{
   {
     path: '/chat',
     name: 'Chat',
-    component: NotFound,
+    component: Chat,
   },
   {
     path: '/profile',
