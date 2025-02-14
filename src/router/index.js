@@ -6,12 +6,19 @@ import HomePage from '@/views/HomePage.vue';
 import ChatPage from '@/views/ChatPage.vue';
 import NotFound from '@/views/NotFound.vue';
 import LoginPage from '@/views/LoginPage.vue';
+import MapPage from '@/views/MapPage.vue';
 
 // add routes map, chat, profile, login
-const routes = [{
+const routes = [
+  {
     path: '/',
     name: 'Home',
     component: HomePage,
+  },
+  {
+    path: "/map",
+    name: "Map",
+    component: MapPage,
   },
   {
     path: '/chat',
@@ -28,16 +35,10 @@ const routes = [{
     name: 'Login',
     component: LoginPage,
   },
-  {
-    path: "/map",
-    name: "Map",
-    component: NotFound
-  }
 ];
 
 const router = createRouter({
-  history: createWebHistory(
-    import.meta.env.BASE_URL),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes,
 });
 
