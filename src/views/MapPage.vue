@@ -99,7 +99,7 @@ export default {
 <style scoped>
 .container {
   position: relative;
-  height: 89vh;
+  height: 86.7vh;
   width: 100%;
 }
 
