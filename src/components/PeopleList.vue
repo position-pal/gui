@@ -1,5 +1,6 @@
 <template>
   <div class="people-list">
+    <h2>People</h2>
     <PersonItem v-for="person in people" :key="person.id" :person="person" />
   </div>
 </template>
@@ -25,7 +26,7 @@ export default {
 
 <style scoped>
 .people-list {
-  max-height: 200px;
+  max-height: 100%;
   overflow-y: auto;
   border-radius: 10px;
   border: 1px solid #ddd;
