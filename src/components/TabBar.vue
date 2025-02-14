@@ -2,22 +2,23 @@
   <nav>
     <router-link class="active tabbar-element" to="/">
       <h3 class="bi bi-house"></h3>
-      <span> Home </span>
     </router-link>
 
     <router-link class="tabbar-element" to="/map">
       <h3 class="bi bi-pin-map"></h3>
-      <span> Map </span>
+    </router-link>
+
+    <router-link class="active sos-button" to="/sos">
+       <h3 class="bi bi-exclamation-triangle"></h3>
+       <span> SOS </span>
     </router-link>
 
     <router-link class="tabbar-element" to="/chat">
       <h3 class="bi bi-chat-dots"></h3>
-      <span> Chat </span>
     </router-link>
 
     <router-link class="tabbar-element" to="/profile">
       <h3 class="bi bi-person"></h3>
-      <span> Profile </span>
     </router-link>
   </nav>
 </template>
@@ -27,68 +28,31 @@ export default {
   name: 'BottomBar',
   mounted() {
     const navigationOptions = [
-      {
-        name: 'home',
-        color: '#5B37B7',
-      },
-      {
-        name: 'profile',
-        color: '#C9379D',
-      },
-      {
-        name: 'map',
-        color: '#1AAB8A',
-      },
-      {
-        name: 'chat',
-        color: '#E6A919',
-      },
-    ]
-    const links = document.querySelectorAll('.tabbar-element')
-    // function called in response to a click event on the anchor link
+      { name: 'home', color: '#5B37B7' },
+      { name: 'profile', color: '#C9379D' },
+      { name: 'map', color: '#1AAB8A' },
+      { name: 'chat', color: '#E6A919' },
+    ];
+    const links = document.querySelectorAll('.tabbar-element');
+
     function handleClick(e) {
-      // prevent the default behavior, but most importantly remove the class of .active from those elements with it
-      e.preventDefault()
-      links.forEach((link) => {
-        if (link.classList.contains('active')) {
-          link.classList.remove('active')
-        }
-      })
-
-      // retrieve the option described the link element
-      const name = this.textContent.trim().toLowerCase()
-      // find in the array the object with the matching name
-      // store a reference to its color
-      const { color } = navigationOptions.find((item) => item.name === name)
-
-      // retrieve the custom property for the --hover-c property, to make it so that the properties are updated only when necessary
-      const style = window.getComputedStyle(this)
-      const hoverColor = style.getPropertyValue('--hover-c')
-      // if the two don't match, update the custom property to show the hue with the text and the semi transparent background
-      if (color !== hoverColor) {
-        this.style.setProperty('--hover-bg', `${color}20`)
-        this.style.setProperty('--hover-c', color)
+      e.preventDefault();
+      links.forEach(link => link.classList.remove('active'));
+      const name = this.querySelector('h3').classList[1].split('-')[2];
+      const { color } = navigationOptions.find(item => item.name === name) || {};
+      if (color) {
+        this.style.setProperty('--hover-bg', `${color}20`);
+        this.style.setProperty('--hover-c', color);
       }
-
-      // apply the class of active to animate the svg an show the span element
-      this.classList.add('active')
+      this.classList.add('active');
     }
 
-    // listen for a click event on each and every anchor link
-    links.forEach((link) => link.addEventListener('click', handleClick))
-  },
+    links.forEach(link => link.addEventListener('click', handleClick));
+  }
 }
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css?family=Open+Sans:700');
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
 nav {
   position: relative;
   z-index: 1000 !important;
@@ -108,34 +72,15 @@ nav {
   align-items: center;
   padding: 0.75rem 1.25rem;
   border-radius: 30px;
-  position: relative;
   --hover-bg: #5b37b720;
   --hover-c: #5b37b7;
 }
 
 .tabbar-element h3 {
-  margin-right: -2.5rem;
   width: 28px;
   height: 28px;
   pointer-events: none;
-  transition: margin-right 0.3s ease-in-out;
-}
-
-.tabbar-element span {
-  opacity: 0;
-  visibility: hidden;
-  font-size: 0.9rem;
-  margin-left: -2rem;
-}
-
-.tabbar-element.active span {
-  visibility: visible;
-  opacity: 1;
-  margin-left: 0.9rem;
-}
-
-.tabbar-element.active h3 {
-  margin-right: 0;
+  transition: color 0.3s ease-in-out;
 }
 
 .tabbar-element.active {
@@ -144,22 +89,26 @@ nav {
   transition: background 0.3s ease-in-out;
 }
 
-.tabbar-element.active h3 {
-  color: var(--hover-c);
+.sos-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ff3b30;
+  color: white;
+  text-decoration: none;
+  padding: 1rem 2rem;
+  border-radius: 40px;
+  box-shadow: 0 4px 12px rgba(255, 59, 48, 0.5);
+  height: 60px;
+  width: auto;
+  min-width: 100px;
+  font-size: 1.1rem;
+  font-weight: bold;
 }
 
-.tabbar-element.active span {
-  color: var(--hover-c);
-}
-
-.tabbar-element:not(.active) span {
-  opacity: 0;
-  visibility: hidden;
-  margin-left: 0;
-}
-
-.tabbar-element:not(.active) {
-  background: transparent;
-  transition: none;
+.sos-button span {
+  visibility: visible;
+  font-size: 1rem;
+  margin-left: 0.7rem;
 }
 </style>
