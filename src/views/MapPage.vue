@@ -4,15 +4,11 @@
     <div
       class="list-container"
       :style="{ height: containerHeight + 'px' }"
-      :class="{ 'minimized': isMinimized }"
+      :class="{ minimized: isMinimized }"
       ref="listContainer"
       @click="maximize"
     >
-      <div
-        class="handle"
-        @mousedown="startResize"
-        @touchstart="startResize"
-      ></div>
+      <div class="handle" @mousedown="startResize" @touchstart="startResize"></div>
       <div class="content-wrapper">
         <PeopleList />
       </div>
@@ -21,8 +17,8 @@
 </template>
 
 <script>
-import MapView from "../components/MapView.vue";
-import PeopleList from "../components/PeopleList.vue";
+import MapView from '../components/MapView.vue'
+import PeopleList from '../components/PeopleList.vue'
 
 export default {
   components: { MapView, PeopleList },
@@ -35,71 +31,71 @@ export default {
       startHeight: 0,
       isResizing: false,
       isMinimized: false,
-      defaultHeight: 300
-    };
+      defaultHeight: 300,
+    }
   },
   mounted() {
-    window.addEventListener('mousemove', this.onResize);
-    window.addEventListener('mouseup', this.stopResize);
-    window.addEventListener('touchmove', this.onResize);
-    window.addEventListener('touchend', this.stopResize);
-    document.addEventListener('click', this.handleOutsideClick);
+    window.addEventListener('mousemove', this.onResize)
+    window.addEventListener('mouseup', this.stopResize)
+    window.addEventListener('touchmove', this.onResize)
+    window.addEventListener('touchend', this.stopResize)
+    document.addEventListener('click', this.handleOutsideClick)
   },
-  beforeDestroy() {
-    window.removeEventListener('mousemove', this.onResize);
-    window.removeEventListener('mouseup', this.stopResize);
-    window.removeEventListener('touchmove', this.onResize);
-    window.removeEventListener('touchend', this.stopResize);
-    document.removeEventListener('click', this.handleOutsideClick);
+  beforeUnmount() {
+    window.removeEventListener('mousemove', this.onResize)
+    window.removeEventListener('mouseup', this.stopResize)
+    window.removeEventListener('touchmove', this.onResize)
+    window.removeEventListener('touchend', this.stopResize)
+    document.removeEventListener('click', this.handleOutsideClick)
   },
   methods: {
     startResize(event) {
-      this.isResizing = true;
-      this.startY = event.type === 'mousedown' ? event.clientY : event.touches[0].clientY;
-      this.startHeight = this.containerHeight;
-      this.isMinimized = false;
+      this.isResizing = true
+      this.startY = event.type === 'mousedown' ? event.clientY : event.touches[0].clientY
+      this.startHeight = this.containerHeight
+      this.isMinimized = false
 
       if (event.type === 'touchstart') {
-        event.preventDefault();
+        event.preventDefault()
       }
     },
     onResize(event) {
-      if (!this.isResizing) return;
-      const currentY = event.type === 'mousemove' ? event.clientY : event.touches[0].clientY;
-      const deltaY = this.startY - currentY;
-      let newHeight = this.startHeight + deltaY;
-      newHeight = Math.max(this.minHeight, Math.min(this.maxHeight, newHeight));
-      this.containerHeight = newHeight;
-      event.preventDefault();
+      if (!this.isResizing) return
+      const currentY = event.type === 'mousemove' ? event.clientY : event.touches[0].clientY
+      const deltaY = this.startY - currentY
+      let newHeight = this.startHeight + deltaY
+      newHeight = Math.max(this.minHeight, Math.min(this.maxHeight, newHeight))
+      this.containerHeight = newHeight
+      event.preventDefault()
     },
     stopResize() {
-      this.isResizing = false;
+      this.isResizing = false
     },
     minimize() {
-      this.isMinimized = true;
-      this.containerHeight = this.minHeight;
+      this.isMinimized = true
+      this.containerHeight = this.minHeight
     },
     maximize(event) {
-      event.stopPropagation();
+      event.stopPropagation()
       if (this.isMinimized) {
-        this.isMinimized = false;
-        this.containerHeight = this.defaultHeight;
+        this.isMinimized = false
+        this.containerHeight = this.defaultHeight
       }
     },
     handleOutsideClick(event) {
-      const container = this.$refs.listContainer;
+      const container = this.$refs.listContainer
       if (container && !container.contains(event.target)) {
-        this.minimize();
+        this.minimize()
       }
-    }
-  }
-};
+    },
+  },
+}
 </script>
 
 <style scoped>
 .container {
   position: relative;
-  height: 86.7vh;
+  height: 100%;
   width: 100%;
 }
 
@@ -119,7 +115,6 @@ export default {
 }
 
 .content-wrapper {
-  height: calc(100% - 25px);
   overflow-y: auto;
 }
 
