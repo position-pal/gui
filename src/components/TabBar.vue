@@ -6,9 +6,9 @@
       <span> Home </span>
     </router-link>
 
-    <router-link class="tabbar-element" to="/map">
-      <h3 class="bi bi-pin-map"></h3>
-      <span> Map </span>
+    <router-link class="tabbar-element" to="/groups">
+      <h3 class="bi bi-people"></h3>
+      <span> Groups </span>
     </router-link>
 
     <router-link class="tabbar-element" to="/profile">
@@ -48,20 +48,16 @@ export default {
       navigationOptions: [
         { name: 'home', color: '#5B37B7' },
         { name: 'profile', color: '#C9379D' },
-        { name: 'map', color: '#1AAB8A' },
-        // Il SOS ha uno stile speciale e non usa navigationOptions
+        { name: 'groups', color: '#1AAB8A' },
       ],
     }
   },
   mounted() {
-    // Gestione click per gli altri link (escluso SOS)
     const links = document.querySelectorAll('.tabbar-element:not(.sos)')
     const navigationOptions = this.navigationOptions
     function handleClick(e) {
       e.preventDefault()
-      // Rimuovo la classe active da tutti i link
       links.forEach((link) => link.classList.remove('active'))
-      // Ricavo il nome dal testo del link (es. "home", "map", "profile")
       const name = e.currentTarget.textContent.trim().toLowerCase()
       const option = navigationOptions.find((item) => item.name === name)
       if (option) {
@@ -77,7 +73,6 @@ export default {
     }
     links.forEach((link) => link.addEventListener('click', handleClick))
 
-    // Aggiungo il listener per rilevare i click all'esterno del popup
     document.addEventListener('click', this.handleOutsideClick)
   },
   beforeUnmount() {
@@ -91,12 +86,10 @@ export default {
       this.showPopup = false
     },
     confirmSos() {
-      // Inserisci qui la logica per inviare SOS (es. chiamata API)
       console.log('SOS inviato!')
       this.hidePopup()
     },
     handleOutsideClick(e) {
-      // Se il popup è aperto e il click avviene al di fuori del container SOS, chiudo il popup
       if (
         this.showPopup &&
         this.$refs.sosContainer &&
@@ -192,7 +185,6 @@ nav {
   transition: none;
 }
 
-/* Stile per SOS: sfondo rosso con leggera trasparenza */
 .tabbar-element.sos {
   width: 50px;
   height: 50px;
@@ -205,26 +197,22 @@ nav {
   background: rgba(255, 0, 0, 0.7);
 }
 
-/* Rimuovo il margin-right negativo solo per l'icona SOS */
 .tabbar-element.sos h3 {
   margin-right: 0 !important;
   color: white;
 }
 
-/* Nascondo il testo “SOS” */
 .tabbar-element.sos span {
   display: none;
 }
 
-/* Posizionamento del container SOS */
 .sos-container {
   position: relative;
 }
 
-/* Stile del popup a larghezza schermo */
 .sos-popup {
   position: fixed;
-  bottom: 11vh; /* Posizionato sopra l'icona SOS */
+  bottom: 11vh;
   left: 0;
   right: 0;
   width: 100%;
@@ -237,7 +225,6 @@ nav {
   z-index: 2000;
 }
 
-/* Animazioni di transizione per il popup */
 .popup-enter-active,
 .popup-leave-active {
   transition: all 0.3s ease;
@@ -253,7 +240,6 @@ nav {
   opacity: 1;
 }
 
-/* Stile dei bottoni nel popup */
 .popup-buttons {
   display: flex;
   justify-content: space-around;
