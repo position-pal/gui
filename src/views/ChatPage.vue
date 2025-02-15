@@ -1,31 +1,32 @@
 <template>
   <div class="chat-view">
-    <div class="chat-header bg-primary text-white p-3">
-      <h5 class="mb-0">Chat Room</h5>
-    </div>
+    <ChatHeader :title="chatTitle" />
 
     <MessageList :messages="messages" />
 
-    <div class="chat-input border-top p-3">
-      <form class="input-group" @submit.prevent="sendMessage">
-        <input v-model="newMessage" type="text" class="form-control" placeholder="Type your message..." />
-        <button class="btn btn-primary" type="submit">Send</button>
-      </form>
-    </div>
+    <MessageInput @send="sendMessage" />
   </div>
 </template>
 
 <script>
-import MessageList from '../components/chat/MessageList.vue'
+import ChatHeader from '../components/chat/ChatHeader.vue';
+import MessageList from '../components/chat/MessageList.vue';
+import MessageInput from '../components/chat/MessageInput.vue';
+
+
+
+
 
 export default {
   name: 'ChatPage',
   components: {
-    MessageList
+    MessageList,
+    ChatHeader,
+    MessageInput
   },
   data() {
     return {
-      newMessage: '',
+      chatTitle: 'Chat Room',
       messages: [
         { text: 'Welcome to the chat room!', isInfo: true },
         { sender: 'John Doe', text: 'Hello! How are you today?', isSent: false, time: '09:00' },
@@ -38,18 +39,17 @@ export default {
     }
   },
   methods: {
-    sendMessage() {
-      if (this.newMessage.trim()) {
+    sendMessage(messageText) {
+      if (messageText.trim()) {
         const now = new Date();
         const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 
         this.messages.push({
           sender: 'You',
-          text: this.newMessage,
+          text: messageText,
           isSent: true,
           time: time
         })
-        this.newMessage = ''
       }
     }
   }
@@ -62,9 +62,4 @@ export default {
   flex-direction: column;
   height: 90vh;
 }
-
-.chat-header {
-  flex-shrink: 0;
-}
-
 </style>
