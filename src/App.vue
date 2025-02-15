@@ -8,12 +8,7 @@
 <script>
 import TabBar from './components/TabBar.vue'
 
-export default {
-  name: 'App',
-  components: {
-    TabBar,
-  },
-}
+export default { name: 'App', components: { TabBar } }
 </script>
 
 <style>
