@@ -4,7 +4,7 @@ import {
 } from 'vue-router';
 import HomePage from '@/views/HomePage.vue';
 import ChatPage from '@/views/ChatPage.vue';
-import NotFound from '@/views/NotFound.vue';
+import ProfilePage from '@/views/ProfilePage.vue';
 import LoginPage from '@/views/LoginPage.vue';
 import MapPage from '@/views/MapPage.vue';
 import GroupPage from '@/views/GroupPage.vue';
@@ -32,7 +32,7 @@ const routes = [{
   {
     path: '/profile',
     name: 'Profile',
-    component: NotFound,
+    component: ProfilePage,
   },
   {
     path: '/login',

@@ -1,5 +1,5 @@
 <template>
-  <div class="h-100 container p-1">
+  <div class="h-100 group-container p-1">
     <h1 class="mt-3 p-1">Groups</h1>
     <!-- Container scrollabile -->
     <ul class="list-group overflow-auto">
