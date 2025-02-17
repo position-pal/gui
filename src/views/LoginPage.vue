@@ -66,6 +66,7 @@
 </template>
 
 <script>
+import axios from 'axios'
 import GradientBackground from '@/components/GradientBackground.vue'
 import { ref, nextTick, onMounted } from 'vue'
 
@@ -86,19 +87,14 @@ export default {
       password: '',
     })
 
-    // Ref per la card e proprietà per l'altezza
     const cardContainer = ref(null)
     const cardHeight = ref(0)
 
-    const handleLogin = () => {
-      console.log('Login:', loginData.value)
-    }
+    const BE_ADDRESS = import.meta.env.VITE_BE_ADDRESS
+    const BE_PORT = import.meta.env.VITE_BE_PORT
+    const loginUrl = `http://${BE_ADDRESS}:${BE_PORT}/api/auth/login`
+    const registerUrl = `http://${BE_ADDRESS}:${BE_PORT}/api/users`
 
-    const handleRegister = () => {
-      console.log('Registrazione:', registerData.value)
-    }
-
-    // Funzione per aggiornare l'altezza della card in base al contenuto
     const updateHeight = () => {
       nextTick(() => {
         if (cardContainer.value) {
@@ -114,12 +110,55 @@ export default {
       updateHeight()
     })
 
-    // Metodo per cambiare forma e aggiornare l'altezza in modo fluido
     const toggleForm = (login) => {
       isLogin.value = login
       nextTick(() => {
         updateHeight()
       })
+    }
+
+    const handleLogin = async () => {
+      try {
+        const response = await axios.post(loginUrl, {
+          email: loginData.value.email,
+          password: loginData.value.password,
+        })
+        if (response.data.data.token) {
+          sessionStorage.setItem('authToken', response.data.data.token)
+        }
+      } catch (error) {
+        console.error('Login error:', error)
+      }
+    }
+
+    const handleRegister = async () => {
+      try {
+        const payload = {
+          userData: {
+            name: registerData.value.name,
+            surname: registerData.value.surname,
+            email: registerData.value.email,
+          },
+          password: registerData.value.password,
+        }
+        const response = await axios.post(registerUrl, payload)
+        if (response.data.code == 200) {
+          try {
+            const response = await axios.post(loginUrl, {
+              email: payload.userData.email,
+              password: payload.password,
+            })
+            if (response.data.data.token) {
+              sessionStorage.setItem('authToken', response.data.data.token)
+              window.location.href = '/'
+            }
+          } catch (error) {
+            console.error('Login error:', error)
+          }
+        }
+      } catch (error) {
+        console.error('Register error:', error)
+      }
     }
 
     return {
@@ -139,7 +178,7 @@ export default {
 
 <style>
 .card {
-  height: calc(100vh - 1vh); /* Altezza dinamica dello schermo con margine verticale */
+  height: calc(100vh - 1vh);
   width: calc(98%);
   transition: height 0.3s ease;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
@@ -181,7 +220,6 @@ export default {
   border-radius: 50px;
 }
 
-/* Animazione slide per i form */
 .slide-enter-active,
 .slide-leave-active {
   transition:
@@ -199,7 +237,6 @@ export default {
   transform: translateX(-100%);
 }
 
-/* Animazione slide */
 .slide-enter-active,
 .slide-leave-active {
   transition:
@@ -231,8 +268,8 @@ body {
   top: 0;
   left: 0;
   padding: 1vh;
-  display: flex; /* Aggiunto per abilitare Flexbox */
-  justify-content: center; /* Centra orizzontalmente */
+  display: flex;
+  justify-content: center;
   align-items: center;
   color: white;
   -webkit-user-select: none;
