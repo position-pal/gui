@@ -1,21 +1,24 @@
 <template>
-  <div class="people-list">
-    <h2>People</h2>
+  <div class="users-list">
+    <h2>Users</h2>
     <div v-if="isLoading">Loading...</div>
     <div v-else-if="error">{{ error }}</div>
-    <PersonItem v-for="user in usersInfo" :key="user.id" :user="user" />
+    <p v-else-if="usersInfo.length === 0">No users found</p>
+    <UserItem v-for="userInfo in usersInfo" :key="userInfo.id" :user="userInfo" />
   </div>
 </template>
 
 <script setup>
 import { useGroupStore } from '@/stores/groupsStore.js'
-import PersonItem from './PersonItem.vue'
+import UserItem from './UserItem.vue'
+import { storeToRefs } from 'pinia'
+
 const store = useGroupStore()
-const { usersInfo, isLoading, error } = store
+const { usersInfo, isLoading, error } = storeToRefs(store)
 </script>
 
 <style scoped>
-.people-list {
+.users-list {
   max-height: 100%;
   overflow-y: auto;
   border-radius: 10px;

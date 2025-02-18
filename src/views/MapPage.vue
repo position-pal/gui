@@ -40,7 +40,7 @@
         </div>
       </div>
       <div class="content-wrapper">
-        <PeopleList />
+        <UsersList />
       </div>
     </div>
   </div>
@@ -58,7 +58,7 @@ console.log('Current group ID:', route.params.groupId);
 store.setCurrentGroupId(route.params.groupId);
 
 import MapView from '../components/map/MapView.vue';
-import PeopleList from '../components/map/PeopleList.vue';
+import UsersList from '../components/map/UsersList.vue';
 import RouteFormDialog from '../components/map/RouteFormDialog.vue';
 
 const containerHeight = ref(300);

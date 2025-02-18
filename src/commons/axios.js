@@ -7,7 +7,7 @@ export function axiosSetup() {
   axios.interceptors.request.use(
     (config) => {
       config.headers["Content-Type"] = "application/json";
-      const token = sessionStorage.getItem("authToken");
+      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJpby5naXRodWIucG9zaXRpb25wYWwiLCJhdWQiOiJwb3NpdGlvbnBhbC5pbyIsImVtYWlsIjoibWFyaW8ucm9zc2lAZ21haWwuY29tIiwiZXhwIjoxNzM5OTI1MjI1fQ.4kc3ae4GP-KTw18ulNTuj3qm2gl918lleI4ye1uorio"
       if (token) {
         config.headers.Authorization = `Bearer ${token}`
       }
@@ -21,13 +21,12 @@ export function axiosSetup() {
   axios.interceptors.response.use(
     (response) => response,
     async function (error) {
-      console.error(error);
+      console.error(error)
       if (error.response.data.code === 401) {
         await sessionStorage.removeItem("authToken");
-        return router.push({ name: "Login" });
-      } else {
-        return Promise.reject(error);
+        await router.push({ name: "Login" });
       }
+      return Promise.reject(error);
     }
   )
 }
