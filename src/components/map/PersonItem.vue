@@ -4,17 +4,20 @@
       <i class="bi bi-person-circle"></i>
     </div>
     <div class="info">
-      <h4>{{ person.name }}</h4>
-      <span>{{ person.location }} • {{ person.time }}</span>
+      <h4>{{ user.name }}</h4>
+      <span>{{ user.location }} • {{ user.time }}</span>
     </div>
-    <div class="distance">{{ person.distance }}</div>
+    <div class="distance">{{ user.distance }}</div>
   </div>
 </template>
 
-<script>
-export default {
-  props: ["person"]
-};
+<script setup>
+defineProps({
+  user: {
+    type: Object,
+    required: true
+  }
+})
 </script>
 
 <style scoped>
@@ -27,6 +30,7 @@ export default {
   display: flex;
   align-items: center;
   padding: 5px;
+  border-radius: 10px;
   border-bottom: 1px solid #ddd;
 }
 .person-item:hover {
