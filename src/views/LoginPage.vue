@@ -68,6 +68,7 @@
 <script>
 import axios from 'axios'
 import GradientBackground from '@/components/GradientBackground.vue'
+import { getUserByEmail } from "@/scripts/user.js"
 import { ref, nextTick, onMounted } from 'vue'
 
 export default {
@@ -90,10 +91,9 @@ export default {
     const cardContainer = ref(null)
     const cardHeight = ref(0)
 
-    const BE_ADDRESS = import.meta.env.VITE_BE_ADDRESS
-    const BE_PORT = import.meta.env.VITE_BE_PORT
-    const loginUrl = `http://${BE_ADDRESS}:${BE_PORT}/api/auth/login`
-    const registerUrl = `http://${BE_ADDRESS}:${BE_PORT}/api/users`
+    const BACKEND_ENDPOINT = import.meta.env.VITE_BACKEND_ENDPOINT || 'http://localhost:3000'
+    const loginUrl = `${BACKEND_ENDPOINT}/api/auth/login`
+    const registerUrl = `${BACKEND_ENDPOINT}/api/users`
 
     const updateHeight = () => {
       nextTick(() => {
@@ -125,6 +125,8 @@ export default {
         })
         if (response.data.data.token) {
           sessionStorage.setItem('authToken', response.data.data.token)
+          sessionStorage.setItem('userData', await getUserByEmail(loginData.value.email))
+          window.location.href = '/'
         }
       } catch (error) {
         console.error('Login error:', error)
@@ -150,6 +152,7 @@ export default {
             })
             if (response.data.data.token) {
               sessionStorage.setItem('authToken', response.data.data.token)
+              sessionStorage.setItem('userData', getUserByEmail(payload.userData.email))
               window.location.href = '/'
             }
           } catch (error) {
