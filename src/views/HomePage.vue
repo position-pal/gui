@@ -13,13 +13,18 @@
       <h5>Share your location</h5>
       <h5>Chat with friends</h5>
       <h5>Feel safe</h5>
-      <router-link
-        to="/login"
-        class="btn btn-lg primary-bg text-white mt-5"
-        style="box-shadow: 0 2px 25px #38b6ff"
-      >
-        Login
-      </router-link>
+      <template v-if="!isAuthenticated">
+        <router-link
+          to="/login"
+          class="btn btn-lg primary-bg text-white mt-5"
+          style="box-shadow: 0 2px 25px #38b6ff"
+        >
+          Login
+        </router-link>
+      </template>
+      <template v-else>
+        <h5>Welcome back!</h5>
+      </template>
     </div>
   </div>
   <GradientBackground />
@@ -27,11 +32,23 @@
 
 <script>
 import GradientBackground from '@/components/GradientBackground.vue'
+import { authenticate } from '@/scripts/user.js'
 
 export default {
   name: 'HomePage',
   components: {
     GradientBackground,
+  },
+  data() {
+    return {
+      isAuthenticated: false,
+    };
+  },
+  async mounted() {
+    const token = sessionStorage.getItem('authToken');
+    if (token) {
+      this.isAuthenticated = await authenticate(token);
+    }
   },
 }
 </script>
