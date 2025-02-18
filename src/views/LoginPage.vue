@@ -91,9 +91,8 @@ export default {
     const cardContainer = ref(null)
     const cardHeight = ref(0)
 
-    const BACKEND_ENDPOINT = import.meta.env.VITE_BACKEND_ENDPOINT || 'http://localhost:3000'
-    const loginUrl = `${BACKEND_ENDPOINT}/api/auth/login`
-    const registerUrl = `${BACKEND_ENDPOINT}/api/users`
+    const loginUrl = `api/auth/login`
+    const registerUrl = `api/users`
 
     const updateHeight = () => {
       nextTick(() => {

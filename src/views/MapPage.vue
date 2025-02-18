@@ -1,6 +1,21 @@
 <template>
   <div class="container" @click.self="minimize">
     <MapView />
+    <button class="route-fab" @click="openRouteForm" title="Plan your route">
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M9 20l-5.447-2.724A1 1 0 0 1 3 16.382V5.618a1 1 0 0 1 .553-.894L9 2m0 18v-18m0 18l6-3m-6-15l6-3m-6 0v18m6-18v18m0 0l5.447-2.724A1 1 0 0 0 21 16.382V5.618a1 1 0 0 0-.553-.894L15 2"/>
+      </svg>
+    </button>
+    <RouteFormDialog v-if="showRouteForm" @close="closeRouteForm" @submit="handleRouteSubmit" />
     <div
       class="list-container"
       :style="{ height: containerHeight + 'px' }"
@@ -8,7 +23,22 @@
       ref="listContainer"
       @click="maximize"
     >
-      <div class="handle" @mousedown="startResize" @touchstart="startResize"></div>
+      <div class="toggle-button" @click.stop="toggleContainer">
+        <div class="arrow" :class="{ 'arrow-down': !isMinimized }">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M18 15l-6-6-6 6"/>
+          </svg>
+        </div>
+      </div>
       <div class="content-wrapper">
         <PeopleList />
       </div>
@@ -16,80 +46,67 @@
   </div>
 </template>
 
-<script>
-import MapView from '../components/MapView.vue'
-import PeopleList from '../components/PeopleList.vue'
+<script setup>
+import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { useGroupStore } from '@/stores/groupsStore.js'
+import { useRoute } from 'vue-router'
 
-export default {
-  components: { MapView, PeopleList },
-  data() {
-    return {
-      containerHeight: 300,
-      minHeight: 80,
-      maxHeight: window.innerHeight * 0.8,
-      startY: 0,
-      startHeight: 0,
-      isResizing: false,
-      isMinimized: false,
-      defaultHeight: 300,
-    }
-  },
-  mounted() {
-    window.addEventListener('mousemove', this.onResize)
-    window.addEventListener('mouseup', this.stopResize)
-    window.addEventListener('touchmove', this.onResize)
-    window.addEventListener('touchend', this.stopResize)
-    document.addEventListener('click', this.handleOutsideClick)
-  },
-  beforeUnmount() {
-    window.removeEventListener('mousemove', this.onResize)
-    window.removeEventListener('mouseup', this.stopResize)
-    window.removeEventListener('touchmove', this.onResize)
-    window.removeEventListener('touchend', this.stopResize)
-    document.removeEventListener('click', this.handleOutsideClick)
-  },
-  methods: {
-    startResize(event) {
-      this.isResizing = true
-      this.startY = event.type === 'mousedown' ? event.clientY : event.touches[0].clientY
-      this.startHeight = this.containerHeight
-      this.isMinimized = false
+const route = useRoute();
+const store = useGroupStore();
 
-      if (event.type === 'touchstart') {
-        event.preventDefault()
-      }
-    },
-    onResize(event) {
-      if (!this.isResizing) return
-      const currentY = event.type === 'mousemove' ? event.clientY : event.touches[0].clientY
-      const deltaY = this.startY - currentY
-      let newHeight = this.startHeight + deltaY
-      newHeight = Math.max(this.minHeight, Math.min(this.maxHeight, newHeight))
-      this.containerHeight = newHeight
-      event.preventDefault()
-    },
-    stopResize() {
-      this.isResizing = false
-    },
-    minimize() {
-      this.isMinimized = true
-      this.containerHeight = this.minHeight
-    },
-    maximize(event) {
-      event.stopPropagation()
-      if (this.isMinimized) {
-        this.isMinimized = false
-        this.containerHeight = this.defaultHeight
-      }
-    },
-    handleOutsideClick(event) {
-      const container = this.$refs.listContainer
-      if (container && !container.contains(event.target)) {
-        this.minimize()
-      }
-    },
-  },
-}
+console.log('Current group ID:', route.params.groupId);
+store.setCurrentGroupId(route.params.groupId);
+
+import MapView from '../components/map/MapView.vue';
+import PeopleList from '../components/map/PeopleList.vue';
+import RouteFormDialog from '../components/map/RouteFormDialog.vue';
+
+const containerHeight = ref(300);
+const minHeight = 80;
+const isMinimized = ref(false);
+const defaultHeight = 300;
+const showRouteForm = ref(false);
+const listContainer = ref(null);
+
+const minimize = () => {
+  isMinimized.value = true;
+  containerHeight.value = minHeight;
+};
+
+const maximize = (event) => {
+  event.stopPropagation();
+  if (isMinimized.value) {
+    isMinimized.value = false;
+    containerHeight.value = defaultHeight;
+  }
+};
+
+const toggleContainer = (event) => {
+  event.stopPropagation();
+  isMinimized.value ? maximize(event) : minimize();
+};
+
+const handleOutsideClick = (event) => {
+  if (listContainer.value && !listContainer.value.contains(event.target)) {
+    minimize();
+  }
+};
+
+const openRouteForm = () => {
+  showRouteForm.value = true;
+};
+
+const closeRouteForm = () => {
+  showRouteForm.value = false;
+};
+
+const handleRouteSubmit = (formData) => {
+  console.log('Route submitted:', formData);
+  closeRouteForm();
+};
+
+onMounted(() => document.addEventListener('click', handleOutsideClick));
+onBeforeUnmount(() => document.removeEventListener('click', handleOutsideClick));
 </script>
 
 <style scoped>
@@ -111,31 +128,64 @@ export default {
   overflow: hidden;
   box-shadow: 0px -4px 10px rgba(0, 0, 0, 0.2);
   transition: height 0.3s ease;
-  touch-action: none;
+}
+
+.toggle-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 30px;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.arrow {
+  transition: transform 0.3s ease;
+  color: #666;
+}
+
+.arrow-down {
+  transform: rotate(180deg);
 }
 
 .content-wrapper {
   overflow-y: auto;
-}
-
-.handle {
-  width: 50px;
-  height: 5px;
-  background: #ccc;
-  border-radius: 3px;
-  margin: 0 auto 10px auto;
-  cursor: ns-resize;
-  touch-action: none;
-}
-
-.list-container:active .handle {
-  cursor: grabbing;
+  height: calc(100% - 50px);
 }
 
 .minimized {
   cursor: pointer;
 }
 
+.route-fab {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: white;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+  z-index: 1000;
+}
+
+.route-fab:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.route-fab svg {
+  color: #666;
+}
+
+/* Scrollbar Styles */
 .content-wrapper {
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 0, 0, 0.2) transparent;

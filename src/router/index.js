@@ -20,9 +20,10 @@ const routes = [{
     component: GroupPage,
   },
   {
-    path: "/map",
+    path: "/map/:groupId",
     name: "Map",
     component: MapPage,
+    props: true,
   },
   {
     path: '/chat',
