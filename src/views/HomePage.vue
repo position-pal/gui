@@ -24,6 +24,14 @@
       </template>
       <template v-else>
         <h5>Welcome back!</h5>
+        <h5>{{this.firstName}} {{this.lastName}}</h5>
+        <router-link
+          to="/groups"
+          class="btn btn-lg primary-bg text-white mt-5"
+          style="box-shadow: 0 2px 25px #38b6ff"
+        >
+          Groups
+        </router-link>
       </template>
     </div>
   </div>
@@ -32,7 +40,7 @@
 
 <script>
 import GradientBackground from '@/components/GradientBackground.vue'
-import { authenticate, isUserLoggedIn } from '@/scripts/user.js'
+import { authenticate, getLoggedInUser, isUserLoggedIn } from '@/scripts/user.js'
 
 export default {
   name: 'HomePage',
@@ -42,12 +50,19 @@ export default {
   data() {
     return {
       isAuthenticated: false,
+      firstName: '',
+      lastName: '',
     };
   },
   async mounted() {
     const token = sessionStorage.getItem('authToken');
     if (token) {
       this.isAuthenticated = isUserLoggedIn();
+    }
+    const user = getLoggedInUser()
+    if (user) {
+      this.firstName = user.name
+      this.lastName = user.surname
     }
   },
 }
