@@ -6,7 +6,7 @@
           <div class="card-body text-center">
             <div class="d-flex justify-content-center">
               <img
-                src="https://ui-avatars.com/api/?name=Luke+Skywalker&background=random"
+                :src="`https://ui-avatars.com/api/?background=random&name=${firstName}+${lastName}`"
                 alt="Avatar"
                 class="profile-avatar"
               />
@@ -25,7 +25,7 @@
               </div>
             </transition>
             <div class="mt-3">
-              <div class="info-item">luke.skywalker@jedi.com</div>
+              <div class="info-item">{{ this.email }}</div>
             </div>
             <transition name="slide-fade" mode="out-in" appear>
               <div v-if="isChangingPassword" key="change-password" class="mt-3">
@@ -79,7 +79,7 @@
 
 <script>
 import GradientBackground from '@/components/GradientBackground.vue'
-import { logout } from '@/scripts/user.js'
+import { getLoggedInUser, logout } from '@/scripts/user.js'
 import router from '@/router/index.js'
 
 export default {
@@ -92,12 +92,19 @@ export default {
       isEditingName: false,
       isChangingPassword: false,
       isLoggingOut: false,
-      firstName: 'Luke',
-      lastName: 'Skywalker',
+      firstName: '',
+      lastName: '',
+      email: '',
       newPassword: '',
       confirmPassword: '',
       oldPassword: '',
     }
+  },
+  mounted() {
+    const userData = getLoggedInUser() || {}
+    this.firstName = userData.name || ''
+    this.lastName = userData.surname || ''
+    this.email = userData.email || ''
   },
   computed: {
     fullName() {
@@ -136,8 +143,12 @@ export default {
       this.oldPassword = ''
     },
     logout() {
-      logout()
-      router.push('/')
+      this.isLoggingOut = true
+      setTimeout(() => {
+        this.isLoggingOut = false
+        logout()
+        router.push('/')
+      }, 1000)
     },
   },
 }

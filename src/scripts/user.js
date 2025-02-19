@@ -13,11 +13,14 @@ function logout() {
   sessionStorage.removeItem('userData')
 }
 
+function getLoggedInUser() {
+  return JSON.parse(sessionStorage.getItem('userData'))
+}
 
 async function getUserByEmail(email) {
   try {
     const response = await axios.post(`api/users/getuser`, { "email": email });
-    return response.data;
+    return response.data.data;
   } catch (error) {
     throw new Error(
       `Error fetching user: ${error.response ? error.response.statusText : error.message}`
@@ -40,7 +43,7 @@ async function login(email, password) {
   const response = await axios.post(`api/auth/login`, { "email": email, "password": password });
   if (response.data.data.token) {
     sessionStorage.setItem('authToken', response.data.data.token)
-    sessionStorage.setItem('userData', await getUserByEmail(email));
+    sessionStorage.setItem('userData', JSON.stringify(await getUserByEmail(email)));
     return true;
   }
   return false;
@@ -56,7 +59,7 @@ async function registerAndLogin(name, surname, email, password) {
     password: password,
   })
   if (response.data.code === 200) {
-    sessionStorage.setItem("userData", response.data.data)
+    sessionStorage.setItem("userData", JSON.stringify(response.data.data))
     return await login(email, password)
   }
 }
@@ -68,4 +71,5 @@ export {
   registerAndLogin,
   isUserLoggedIn,
   logout,
+  getLoggedInUser,
 };
