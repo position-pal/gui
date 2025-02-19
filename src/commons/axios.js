@@ -7,7 +7,7 @@ export function axiosSetup() {
   axios.interceptors.request.use(
     (config) => {
       config.headers["Content-Type"] = "application/json";
-      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJpby5naXRodWIucG9zaXRpb25wYWwiLCJhdWQiOiJwb3NpdGlvbnBhbC5pbyIsImVtYWlsIjoibWFyaW8ucm9zc2lAZ21haWwuY29tIiwiZXhwIjoxNzM5OTI1MjI1fQ.4kc3ae4GP-KTw18ulNTuj3qm2gl918lleI4ye1uorio"
+      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJpby5naXRodWIucG9zaXRpb25wYWwiLCJhdWQiOiJwb3NpdGlvbnBhbC5pbyIsImVtYWlsIjoibWFyaW8ucm9zc2lAZ21haWwuY29tIiwiZXhwIjoxNzM5OTc5NDM2fQ.1AnJReimEx7G3ggXmSw5Kd9Xfnu972XggHyFsLiCAbc"
       if (token) {
         config.headers.Authorization = `Bearer ${token}`
       }

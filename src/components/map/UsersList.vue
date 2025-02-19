@@ -9,11 +9,11 @@
 </template>
 
 <script setup>
-import { useGroupStore } from '@/stores/groupsStore.js'
+import { useGroupMapStore } from '@/stores/groupMapStore.js'
 import UserItem from './UserItem.vue'
 import { storeToRefs } from 'pinia'
 
-const store = useGroupStore()
+const store = useGroupMapStore()
 const { usersInfo, isLoading, error } = storeToRefs(store)
 </script>
 

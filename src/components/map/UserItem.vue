@@ -1,5 +1,8 @@
 <template>
-  <div class="person-item">
+  <div
+    class="user-item"
+    @click="handleUserClick"
+  >
     <div class="icon">
       <i class="bi bi-person-circle"></i>
     </div>
@@ -8,7 +11,7 @@
         {{ user.name }}
         <span class="info-badge" :style="{ background: colorForStatus(user.state) }">{{ user.state }}</span>
       </h4>
-      <p>{{ user.location }} • {{ user.lastSeen }}</p>
+      <p v-if="user.location">{{ user.location }} • {{ user.lastSeen }}</p>
     </div>
     <div class="distance info-badge">{{ distance }} km</div>
   </div>
@@ -16,8 +19,9 @@
 
 <script setup>
 import { useLocationStore } from '@/stores/locationStore.js'
+import { useGroupMapStore } from '@/stores/groupMapStore.js'
 import { storeToRefs } from 'pinia'
-import { onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
 const props = defineProps({
   user: {
@@ -26,13 +30,28 @@ const props = defineProps({
   }
 })
 
-const store = useLocationStore()
-const { currentPosition } = storeToRefs(store)
+const locationStore = useLocationStore()
+const groupMapStore = useGroupMapStore()
+const { currentPosition } = storeToRefs(locationStore)
 const distance = ref("N/A")
+
+const handleUserClick = () => {
+  const success = groupMapStore.selectUser(props.user.id)
+  console.log('User selected:', props.user.id, success)
+  if (!success && hasLocation.value) {
+    console.warn('User location not available')
+  }
+}
+
+const hasLocation = computed(() => {
+  return props.user.location &&
+    typeof props.user.location.latitude === 'number' &&
+    typeof props.user.location.longitude === 'number'
+})
 
 const updateDistance = async () => {
   if (currentPosition.value && props.user.location) {
-    distance.value = Math.trunc(store.calculateDistance(props.user.location)) || "N/A"
+    distance.value = Math.trunc(locationStore.calculateDistance(props.user.location)) || "N/A"
   }
 }
 
@@ -40,11 +59,11 @@ watch(currentPosition, updateDistance)
 watch(() => props.user.location, updateDistance, { deep: true })
 
 onMounted(() => {
-  store.startTracking()
+  locationStore.startTracking()
   updateDistance()
 })
 
-onUnmounted(() => store.stopTracking())
+onUnmounted(() => locationStore.stopTracking())
 
 // Styling utility functions
 
@@ -65,19 +84,19 @@ const colorForStatus = (status) => {
   color: #1d93c8;
   margin-right: 10px;
 }
-.person-item {
+.user-item {
   display: flex;
   align-items: center;
   padding: 5px;
   border-radius: 10px;
   border-bottom: 1px solid #ddd;
 }
-.person-item:hover {
+.user-item:hover {
   background: #D6F5EE;
   border-radius: 10px;
   transition: background 0.6s ease-in-out;
 }
-.person-item h4 {
+.user-item h4 {
   color: #1d93c8;
   font-size: 16px;
   margin: 0;

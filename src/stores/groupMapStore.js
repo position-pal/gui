@@ -2,10 +2,11 @@ import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import axios from 'axios'
 
-export const useGroupStore = defineStore('group', () => {
+export const useGroupMapStore = defineStore('groupMap', () => {
   const groupId = ref(null)
   const users = ref([])
   const sessions = ref({})
+  const selection = ref({ userId: null, location: null })
   const isLoading = ref(false)
   const error = ref(null)
 
@@ -17,8 +18,8 @@ export const useGroupStore = defineStore('group', () => {
         name: `${user.name} ${user.surname}`,
         email: user.email,
         state: userInfo?.state || "INACTIVE",
-        lastSeen: userInfo?.lastSeen || "Never updated, yet",
-        location: userInfo?.location || "Unknown position",
+        lastSeen: userInfo?.lastSeen,
+        location: userInfo?.location,
         tracking: userInfo?.tracking,
       }
       console.log(info);
@@ -97,6 +98,22 @@ export const useGroupStore = defineStore('group', () => {
     }
   }
 
+  function selectUser(userId) {
+    const userSession = sessions.value[userId]
+    if (userSession?.location) {
+      selection.value = {
+        userId,
+        location: userSession.location
+      }
+      return true
+    }
+    return false
+  }
+
+  function clearSelection() {
+    selection.value = { userId: null, location: null }
+  }
+
   function handleError(error, context) {
     console.error(`Error in ${context}:`, error)
     error.value = `Failed to ${context}: ${error}`
@@ -114,10 +131,13 @@ export const useGroupStore = defineStore('group', () => {
     usersInfo,
     isLoading,
     error,
+    selection,
     setCurrentGroupId,
     fetchGroupUsers,
     fetchGroupSessions,
     updateUserSession,
+    selectUser,
+    clearSelection,
     resetStore,
   }
 })

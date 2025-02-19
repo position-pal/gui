@@ -34,7 +34,7 @@ export const useLocationStore = defineStore('location', () => {
       handleError,
       {
         enableHighAccuracy: true,
-        timeout: 5000, // 5 seconds timeout for the request to complete successfully before it is considered an error
+        timeout: 5000, // 5 seconds timeout for the request
         distanceFilter: 1 // Update only if the position changes by 1 meter
       }
     )
@@ -50,14 +50,8 @@ export const useLocationStore = defineStore('location', () => {
 
   const calculateDistance = (targetCoords) => {
     if (!currentPosition.value || !targetCoords.longitude || !targetCoords.latitude) return null
-    const from = turf.point([
-      currentPosition.value.longitude,
-      currentPosition.value.latitude
-    ])
-    const to = turf.point([
-      targetCoords.longitude,
-      targetCoords.latitude
-    ])
+    const from = turf.point([currentPosition.value.longitude, currentPosition.value.latitude])
+    const to = turf.point([targetCoords.longitude, targetCoords.latitude])
     return turf.distance(from, to, { units: 'kilometers' })
   }
 
