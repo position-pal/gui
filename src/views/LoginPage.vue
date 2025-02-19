@@ -68,6 +68,7 @@
 import GradientBackground from '@/components/GradientBackground.vue'
 import { login, registerAndLogin } from '@/scripts/user.js'
 import { ref, nextTick, onMounted } from 'vue'
+import router from '@/router/index.js'
 
 export default {
   components: {
@@ -113,7 +114,7 @@ export default {
 
     const handleLogin = async () => {
       if (await login(loginData.value.email, loginData.value.password)) {
-        window.location.href = '/'
+        await router.push('/')
       } else {
         alert('Login failed')
       }
@@ -121,7 +122,7 @@ export default {
 
     const handleRegister = async () => {
      if(await registerAndLogin(registerData.value.name, registerData.value.surname, registerData.value.email, registerData.value.password)){
-       window.location.href = '/'
+       await router.push('/')
      } else {
        alert('Registration failed')
      }

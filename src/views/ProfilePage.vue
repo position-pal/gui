@@ -79,6 +79,8 @@
 
 <script>
 import GradientBackground from '@/components/GradientBackground.vue'
+import { logout } from '@/scripts/user.js'
+import router from '@/router/index.js'
 
 export default {
   name: 'ProfilePage',
@@ -134,10 +136,8 @@ export default {
       this.oldPassword = ''
     },
     logout() {
-      this.isLoggingOut = true
-      setTimeout(() => {
-        this.$router.push('/')
-      }, 1000)
+      logout()
+      router.push('/')
     },
   },
 }

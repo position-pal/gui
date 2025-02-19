@@ -32,7 +32,7 @@
 
 <script>
 import GradientBackground from '@/components/GradientBackground.vue'
-import { authenticate } from '@/scripts/user.js'
+import { authenticate, isUserLoggedIn } from '@/scripts/user.js'
 
 export default {
   name: 'HomePage',
@@ -47,7 +47,7 @@ export default {
   async mounted() {
     const token = sessionStorage.getItem('authToken');
     if (token) {
-      this.isAuthenticated = await authenticate(token);
+      this.isAuthenticated = isUserLoggedIn();
     }
   },
 }

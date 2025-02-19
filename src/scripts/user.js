@@ -1,5 +1,19 @@
 import axios from 'axios'
 
+function getToken() {
+  return sessionStorage.getItem('authToken')
+}
+
+function isUserLoggedIn() {
+  return getToken() !== null
+}
+
+function logout() {
+  sessionStorage.removeItem('authToken')
+  sessionStorage.removeItem('userData')
+}
+
+
 async function getUserByEmail(email) {
   try {
     const response = await axios.post(`api/users/getuser`, { "email": email });
@@ -52,4 +66,6 @@ export {
   authenticate,
   login,
   registerAndLogin,
+  isUserLoggedIn,
+  logout,
 };
