@@ -36,10 +36,7 @@ watch(selection, (selection) => {
     map.value.setView(
       [selection.location.latitude, selection.location.longitude],
       20, // zoom level
-      {
-        animate: true,
-        duration: 0  // animation duration in seconds
-      }
+      { animate: false }
     )
   }
 })
