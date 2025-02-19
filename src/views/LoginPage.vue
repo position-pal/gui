@@ -51,12 +51,11 @@
       </div>
 
       <div class="toggle-container">
-        <!-- Abbiamo modificato i pulsanti per utilizzare il metodo toggleForm -->
         <button @click="toggleForm(true)" :class="{ active: isLogin }" class="toggle-btn">
           Login
         </button>
         <button @click="toggleForm(false)" :class="{ active: !isLogin }" class="toggle-btn">
-          Registrati
+          Sign In
         </button>
       </div>
     </div>
@@ -66,9 +65,8 @@
 </template>
 
 <script>
-import axios from 'axios'
 import GradientBackground from '@/components/GradientBackground.vue'
-import { getUserByEmail } from "@/scripts/user.js"
+import { login, registerAndLogin } from '@/scripts/user.js'
 import { ref, nextTick, onMounted } from 'vue'
 
 export default {
@@ -90,9 +88,6 @@ export default {
 
     const cardContainer = ref(null)
     const cardHeight = ref(0)
-
-    const loginUrl = `api/auth/login`
-    const registerUrl = `api/users`
 
     const updateHeight = () => {
       nextTick(() => {
@@ -117,50 +112,19 @@ export default {
     }
 
     const handleLogin = async () => {
-      try {
-        const response = await axios.post(loginUrl, {
-          email: loginData.value.email,
-          password: loginData.value.password,
-        })
-        if (response.data.data.token) {
-          sessionStorage.setItem('authToken', response.data.data.token)
-          sessionStorage.setItem('userData', await getUserByEmail(loginData.value.email))
-          window.location.href = '/'
-        }
-      } catch (error) {
-        console.error('Login error:', error)
+      if (await login(loginData.value.email, loginData.value.password)) {
+        window.location.href = '/'
+      } else {
+        alert('Login failed')
       }
     }
 
     const handleRegister = async () => {
-      try {
-        const payload = {
-          userData: {
-            name: registerData.value.name,
-            surname: registerData.value.surname,
-            email: registerData.value.email,
-          },
-          password: registerData.value.password,
-        }
-        const response = await axios.post(registerUrl, payload)
-        if (response.data.code == 200) {
-          try {
-            const response = await axios.post(loginUrl, {
-              email: payload.userData.email,
-              password: payload.password,
-            })
-            if (response.data.data.token) {
-              sessionStorage.setItem('authToken', response.data.data.token)
-              sessionStorage.setItem('userData', getUserByEmail(payload.userData.email))
-              window.location.href = '/'
-            }
-          } catch (error) {
-            console.error('Login error:', error)
-          }
-        }
-      } catch (error) {
-        console.error('Register error:', error)
-      }
+     if(await registerAndLogin(registerData.value.name, registerData.value.surname, registerData.value.email, registerData.value.password)){
+       window.location.href = '/'
+     } else {
+       alert('Registration failed')
+     }
     }
 
     return {
@@ -183,7 +147,7 @@ export default {
   height: calc(100vh - 1vh);
   width: calc(98%);
   transition: height 0.3s ease;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   border-radius: 50px;
   overflow: hidden;
   padding: 20px;

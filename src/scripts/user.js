@@ -1,8 +1,8 @@
-import axios from 'axios';
+import axios from 'axios'
 
 async function getUserByEmail(email) {
   try {
-    const response = await axios.get(`api/users/${email}`);
+    const response = await axios.post(`api/users/getuser`, { "email": email });
     return response.data;
   } catch (error) {
     throw new Error(
@@ -22,7 +22,34 @@ async function authenticate(token) {
   }
 }
 
+async function login(email, password) {
+  const response = await axios.post(`api/auth/login`, { "email": email, "password": password });
+  if (response.data.data.token) {
+    sessionStorage.setItem('authToken', response.data.data.token)
+    sessionStorage.setItem('userData', await getUserByEmail(email));
+    return true;
+  }
+  return false;
+}
+
+async function registerAndLogin(name, surname, email, password) {
+  const response = await axios.post("api/users", {
+    userData: {
+      name: name,
+      surname: surname,
+      email: email,
+    },
+    password: password,
+  })
+  if (response.data.code === 200) {
+    sessionStorage.setItem("userData", response.data.data)
+    return await login(email, password)
+  }
+}
+
 export {
   getUserByEmail,
-  authenticate
+  authenticate,
+  login,
+  registerAndLogin,
 };
