@@ -40,7 +40,7 @@
 
 <script>
 import GradientBackground from '@/components/GradientBackground.vue'
-import { authenticate, getLoggedInUser, isUserLoggedIn } from '@/scripts/user.js'
+import { getLoggedInUser, isUserLoggedIn } from '@/scripts/user.js'
 
 export default {
   name: 'HomePage',
