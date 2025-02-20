@@ -79,7 +79,7 @@
 
 <script>
 import GradientBackground from '@/components/GradientBackground.vue'
-import { getLoggedInUser, logout } from '@/scripts/user.js'
+import { getLoggedInUser, logout, updateUser } from '@/scripts/user.js'
 import router from '@/router/index.js'
 
 export default {
@@ -118,9 +118,17 @@ export default {
     cancelEditName() {
       this.isEditingName = false
     },
-    saveName() {
-      // Logica per salvare le modifiche
-      this.isEditingName = false
+    async saveName() {
+      const success = await updateUser({
+        name: this.firstName,
+        surname: this.lastName,
+        email: this.email,
+      });
+      if (success) {
+        this.isEditingName = false
+      } else {
+        alert('Failed to update user information');
+      }
     },
     changePassword() {
       this.isChangingPassword = true
@@ -131,16 +139,25 @@ export default {
       this.confirmPassword = ''
       this.oldPassword = ''
     },
-    updatePassword() {
+    async updatePassword() {
       if (this.newPassword !== this.confirmPassword) {
         alert('Passwords do not match')
         return
       }
-      // Logica per aggiornare la password
-      this.isChangingPassword = false
-      this.newPassword = ''
-      this.confirmPassword = ''
-      this.oldPassword = ''
+      const success = await updateUser({
+        name: this.firstName,
+        surname: this.lastName,
+        email: this.email,
+        password: this.newPassword,
+      });
+      if (success) {
+        this.isChangingPassword = false
+        this.newPassword = ''
+        this.confirmPassword = ''
+        this.oldPassword = ''
+      } else {
+        alert('Failed to update password');
+      }
     },
     logout() {
       this.isLoggingOut = true
@@ -153,7 +170,6 @@ export default {
   },
 }
 </script>
-
 <style>
 .profile-container {
   z-index: 100;

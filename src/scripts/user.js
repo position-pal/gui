@@ -18,14 +18,13 @@ function getLoggedInUser() {
 }
 
 async function getUserByEmail(email) {
-  try {
     const response = await axios.post(`api/users/getuser`, { "email": email });
     return response.data.data;
-  } catch (error) {
-    throw new Error(
-      `Error fetching user: ${error.response ? error.response.statusText : error.message}`
-    );
-  }
+}
+
+async function getUserById(id) {
+  const response = await axios.get(`api/users/${id}`);
+  return response.data.data;
 }
 
 async function authenticate(token) {
@@ -64,6 +63,18 @@ async function registerAndLogin(name, surname, email, password) {
   }
 }
 
+async function updateUser(userData) {
+  const userId = getLoggedInUser().id;
+  const response = await axios.put(`api/users/${userId}`, {
+    user: { userData },
+  });
+  if (response.data.code === 200) {
+    sessionStorage.setItem('userData', JSON.stringify(await getUserById(userId)));
+    return true;
+  }
+  return false;
+}
+
 export {
   getUserByEmail,
   authenticate,
@@ -72,4 +83,5 @@ export {
   isUserLoggedIn,
   logout,
   getLoggedInUser,
+  updateUser,
 };
