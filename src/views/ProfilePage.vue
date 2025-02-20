@@ -31,12 +31,6 @@
               <div v-if="isChangingPassword" key="change-password" class="mt-3">
                 <input
                   type="password"
-                  v-model="oldPassword"
-                  placeholder="Old password"
-                  class="form-control mb-2"
-                />
-                <input
-                  type="password"
                   v-model="newPassword"
                   placeholder="New password"
                   class="form-control mb-2"
@@ -79,7 +73,7 @@
 
 <script>
 import GradientBackground from '@/components/GradientBackground.vue'
-import { getLoggedInUser, logout, updateUser } from '@/scripts/user.js'
+import { getLoggedInUser, logout, updateUser, updatePassword } from '@/scripts/user.js'
 import router from '@/router/index.js'
 
 export default {
@@ -97,7 +91,6 @@ export default {
       email: '',
       newPassword: '',
       confirmPassword: '',
-      oldPassword: '',
     }
   },
   mounted() {
@@ -137,24 +130,17 @@ export default {
       this.isChangingPassword = false
       this.newPassword = ''
       this.confirmPassword = ''
-      this.oldPassword = ''
     },
     async updatePassword() {
       if (this.newPassword !== this.confirmPassword) {
         alert('Passwords do not match')
         return
       }
-      const success = await updateUser({
-        name: this.firstName,
-        surname: this.lastName,
-        email: this.email,
-        password: this.newPassword,
-      });
+      const success = await updatePassword(this.newPassword);
       if (success) {
         this.isChangingPassword = false
         this.newPassword = ''
         this.confirmPassword = ''
-        this.oldPassword = ''
       } else {
         alert('Failed to update password');
       }
