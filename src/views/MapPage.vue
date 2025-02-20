@@ -1,21 +1,15 @@
 <template>
   <div class="container" @click.self="minimize">
-    <MapView />
+    <!-- Map component -->
+    <div class="map-wrapper">
+      <MapView />
+    </div>
+    <!-- Container for the buttons to (de)activate position sharing and routing mode -->
     <div class="fab-container">
-      <button class="route-fab" @click="openRouteForm" title="Plan your route">
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path d="M9 20l-5.447-2.724A1 1 0 0 1 3 16.382V5.618a1 1 0 0 1 .553-.894L9 2m0 18v-18m0 18l6-3m-6-15l6-3m-6 0v18m6-18v18m0 0l5.447-2.724A1 1 0 0 0 21 16.382V5.618a1 1 0 0 0-.553-.894L15 2"/>
-        </svg>
-      </button>
+      <div class="location-status new-position" :class="{ 'active': isLocationSharingEnabled }">
+        <p v-if="isLocationSharingEnabled">You are sharing your location</p>
+        <p v-else>Location sharing is OFF</p>
+      </div>
       <button
         class="location-fab"
         @click="toggleLocationSharing"
@@ -36,8 +30,24 @@
           <circle cx="12" cy="10" r="3"/>
         </svg>
       </button>
+      <button class="route-fab" @click="openRouteForm" title="Plan your route">
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M9 20l-5.447-2.724A1 1 0 0 1 3 16.382V5.618a1 1 0 0 1 .553-.894L9 2m0 18v-18m0 18l6-3m-6-15l6-3m-6 0v18m6-18v18m0 0l5.447-2.724A1 1 0 0 0 21 16.382V5.618a1 1 0 0 0-.553-.894L15 2"/>
+        </svg>
+      </button>
     </div>
+    <!-- Route sharing dialog -->
     <RouteFormDialog v-if="showRouteForm" @close="closeRouteForm" @submit="handleRouteSubmit" />
+    <!-- Members list container -->
     <div
       class="list-container"
       :style="{ height: containerHeight + 'px' }"
@@ -80,7 +90,7 @@ const route = useRoute();
 const store = useGroupMapStore();
 store.setCurrentGroupId(route.params.groupId);
 
-const isLocationSharingEnabled = ref(true); // invece di false
+const isLocationSharingEnabled = ref(false); // invece di false
 
 /*
  *********************** JUST FOR THE MOMENT TO TEST *************************
@@ -191,14 +201,27 @@ onBeforeUnmount(() => document.removeEventListener('click', handleOutsideClick))
   cursor: pointer;
 }
 
+/* Map */
+.map-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
 /* Fab */
 .fab-container {
   position: absolute;
-  top: 20px;
+  top: 95px;
   right: 20px;
   display: flex;
+  flex-direction: column;
   gap: 12px;
   z-index: 1000;
+  align-items: flex-end;
+  transform: translateY(-50%);
 }
 
 .route-fab, .location-fab {
@@ -243,6 +266,26 @@ onBeforeUnmount(() => document.removeEventListener('click', handleOutsideClick))
 
 .location-fab.active svg {
   color: white;
+}
+
+.location-status.new-position {
+  position: relative;
+  font-size: 12px;
+  padding: 5px 10px;
+  background: gray;
+  color: white;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  z-index: 1000;
+  align-self: center;
+}
+
+.location-status.active {
+  background: #4CAF50;
+}
+
+.location-status p {
+  margin: 0;
 }
 
 @keyframes pulseAnim {
