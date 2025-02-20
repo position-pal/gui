@@ -66,13 +66,22 @@ async function registerAndLogin(name, surname, email, password) {
 async function updateUser(userData) {
   const userId = getLoggedInUser().id;
   const response = await axios.put(`api/users/${userId}`, {
-    user: { userData },
+    user: { userData, password: null },
   });
   if (response.data.code === 200) {
     sessionStorage.setItem('userData', JSON.stringify(await getUserById(userId)));
     return true;
   }
   return false;
+}
+
+async function updatePassword(password) {
+  const userId = getLoggedInUser().id;
+  const response = await axios.put(`api/users/${userId}`, {
+    user: { password: password },
+  });
+  return response.data.code === 200;
+
 }
 
 export {
@@ -84,4 +93,5 @@ export {
   logout,
   getLoggedInUser,
   updateUser,
+  updatePassword,
 };
