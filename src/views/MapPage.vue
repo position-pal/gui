@@ -40,7 +40,7 @@
         </div>
       </div>
       <div class="content-wrapper">
-        <PeopleList />
+        <UsersList />
       </div>
     </div>
   </div>
@@ -48,18 +48,17 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
-import { useGroupStore } from '@/stores/groupsStore.js'
+import { useGroupMapStore } from '@/stores/groupMapStore.js'
 import { useRoute } from 'vue-router'
+import MapView from '../components/map/MapView.vue';
+import UsersList from '../components/map/UsersList.vue';
+import RouteFormDialog from '../components/map/RouteFormDialog.vue';
 
 const route = useRoute();
-const store = useGroupStore();
-
-console.log('Current group ID:', route.params.groupId);
+const store = useGroupMapStore();
 store.setCurrentGroupId(route.params.groupId);
 
-import MapView from '../components/map/MapView.vue';
-import PeopleList from '../components/map/PeopleList.vue';
-import RouteFormDialog from '../components/map/RouteFormDialog.vue';
+/**************************** Styling elements ****************************/
 
 const containerHeight = ref(300);
 const minHeight = 80;

@@ -2,27 +2,36 @@ import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import axios from 'axios'
 
-export const useGroupStore = defineStore('group', () => {
+export const useGroupMapStore = defineStore('groupMap', () => {
   const groupId = ref(null)
   const users = ref([])
   const sessions = ref({})
+  const selection = ref({ userId: null, location: null })
   const isLoading = ref(false)
   const error = ref(null)
 
-  const usersInfo = computed(() =>
-    users.value.map(user => ({
-      id: user.id,
-      name: `${user.name} ${user.surname}`,
-      email: user.email,
-      ...sessions.value[user.id]
-    }))
-  )
+  const usersInfo = computed(() => {
+    return users.value.map(user => {
+      const userInfo = sessions.value[user.id]
+      const info = {
+        id: user.id,
+        name: `${user.name} ${user.surname}`,
+        email: user.email,
+        state: userInfo?.state || "INACTIVE",
+        lastSeen: userInfo?.lastSeen,
+        location: userInfo?.location,
+        tracking: userInfo?.tracking,
+      }
+      console.log(info);
+      return info;
+    })
+  })
 
   watch(groupId, async (newId) => {
     if (newId) {
       isLoading.value = true;
       try {
-        await Promise.all([fetchGroupUsers()]);
+        await Promise.all([fetchGroupUsers(), fetchGroupSessions()]);
       } catch (e) {
         handleError(e, 'loading group data');
       } finally {
@@ -43,6 +52,7 @@ export const useGroupStore = defineStore('group', () => {
     isLoading.value = true;
     try {
       const response = await axios.get(`api/groups/${groupId.value}`);
+      console.log(response);
       users.value = response.data.data.members;
       console.log(users.value);
     } catch (e) {
@@ -55,13 +65,9 @@ export const useGroupStore = defineStore('group', () => {
   async function fetchGroupSessions() {
     if (!groupId.value) return;
     try {
-      const res = await fetch(`/api/session/session/${groupId.value}`).then(res => {
-        if (!res.ok) {
-          throw new Error('Failed to fetch group sessions')
-        }
-        return res.json()
-      });
-      const sessionsList = res.data.sessions
+      const res = await axios.get(`api/session/session/${groupId.value}`);
+      const sessionsList = res.data.data.sessions;
+      console.log("Session data", sessionsList);
       sessions.value = sessionsList.reduce((acc, session) => {
         const userId = session.scope?.user?.value
         if (!userId) return acc
@@ -70,10 +76,11 @@ export const useGroupStore = defineStore('group', () => {
             parseInt(session.lastSampledLocation.timestamp.seconds) * 1_000
           ).toLocaleString(),
           location: {
-            lat: session.lastSampledLocation.location.latitude,
-            lng: session.lastSampledLocation.location.longitude
+            latitude: session.lastSampledLocation.location.latitude,
+            longitude: session.lastSampledLocation.location.longitude
           },
-          status: session.state
+          state: session.state,
+          tracking: session.tracking,
         }
         return acc
       }, {})
@@ -91,9 +98,25 @@ export const useGroupStore = defineStore('group', () => {
     }
   }
 
+  function selectUser(userId) {
+    const userSession = sessions.value[userId]
+    if (userSession?.location) {
+      selection.value = {
+        userId,
+        location: userSession.location
+      }
+      return true
+    }
+    return false
+  }
+
+  function clearSelection() {
+    selection.value = { userId: null, location: null }
+  }
+
   function handleError(error, context) {
     console.error(`Error in ${context}:`, error)
-    error.value = `Failed to ${context}: ${error.message}`
+    error.value = `Failed to ${context}: ${error}`
   }
 
   function resetStore() {
@@ -108,10 +131,13 @@ export const useGroupStore = defineStore('group', () => {
     usersInfo,
     isLoading,
     error,
+    selection,
     setCurrentGroupId,
     fetchGroupUsers,
     fetchGroupSessions,
     updateUserSession,
+    selectUser,
+    clearSelection,
     resetStore,
   }
 })
