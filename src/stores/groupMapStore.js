@@ -22,7 +22,6 @@ export const useGroupMapStore = defineStore('groupMap', () => {
         location: userInfo?.location,
         tracking: userInfo?.tracking,
       }
-      console.log(info);
       return info;
     })
   })
@@ -52,9 +51,7 @@ export const useGroupMapStore = defineStore('groupMap', () => {
     isLoading.value = true;
     try {
       const response = await axios.get(`api/groups/${groupId.value}`);
-      console.log(response);
       users.value = response.data.data.members;
-      console.log(users.value);
     } catch (e) {
       handleError(e, 'fetch group users');
     } finally {
@@ -67,7 +64,6 @@ export const useGroupMapStore = defineStore('groupMap', () => {
     try {
       const res = await axios.get(`api/session/session/${groupId.value}`);
       const sessionsList = res.data.data.sessions;
-      console.log("Session data", sessionsList);
       sessions.value = sessionsList.reduce((acc, session) => {
         const userId = session.scope?.user?.value
         if (!userId) return acc

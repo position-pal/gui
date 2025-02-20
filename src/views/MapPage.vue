@@ -1,47 +1,52 @@
 <template>
-  <div
-    class="container"
-    @click.self="minimize"
-  >
+  <div class="container" @click.self="minimize">
     <MapView />
-    <button
-      class="route-fab"
-      title="Plan your route"
-      @click="openRouteForm"
-    >
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+    <div class="fab-container">
+      <button class="route-fab" @click="openRouteForm" title="Plan your route">
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M9 20l-5.447-2.724A1 1 0 0 1 3 16.382V5.618a1 1 0 0 1 .553-.894L9 2m0 18v-18m0 18l6-3m-6-15l6-3m-6 0v18m6-18v18m0 0l5.447-2.724A1 1 0 0 0 21 16.382V5.618a1 1 0 0 0-.553-.894L15 2"/>
+        </svg>
+      </button>
+      <button
+        class="location-fab"
+        @click="toggleLocationSharing"
+        :class="{ 'active': isLocationSharingEnabled }"
+        :title="isLocationSharingEnabled ? 'Disabilita condivisione posizione' : 'Abilita condivisione posizione'"
       >
-        <path d="M9 20l-5.447-2.724A1 1 0 0 1 3 16.382V5.618a1 1 0 0 1 .553-.894L9 2m0 18v-18m0 18l6-3m-6-15l6-3m-6 0v18m6-18v18m0 0l5.447-2.724A1 1 0 0 0 21 16.382V5.618a1 1 0 0 0-.553-.894L15 2" />
-      </svg>
-    </button>
-    <RouteFormDialog
-      v-if="showRouteForm"
-      @close="closeRouteForm"
-      @submit="handleRouteSubmit"
-    />
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+          <circle cx="12" cy="10" r="3"/>
+        </svg>
+      </button>
+    </div>
+    <RouteFormDialog v-if="showRouteForm" @close="closeRouteForm" @submit="handleRouteSubmit" />
     <div
-      ref="listContainer"
       class="list-container"
       :style="{ height: containerHeight + 'px' }"
       :class="{ minimized: isMinimized }"
+      ref="listContainer"
       @click="maximize"
     >
-      <div
-        class="toggle-button"
-        @click.stop="toggleContainer"
-      >
-        <div
-          class="arrow"
-          :class="{ 'arrow-down': !isMinimized }"
-        >
+      <div class="toggle-button" @click.stop="toggleContainer">
+        <div class="arrow" :class="{ 'arrow-down': !isMinimized }">
           <svg
             width="24"
             height="24"
@@ -52,7 +57,7 @@
             stroke-linecap="round"
             stroke-linejoin="round"
           >
-            <path d="M18 15l-6-6-6 6" />
+            <path d="M18 15l-6-6-6 6"/>
           </svg>
         </div>
       </div>
@@ -74,6 +79,15 @@ import RouteFormDialog from '../components/map/RouteFormDialog.vue';
 const route = useRoute();
 const store = useGroupMapStore();
 store.setCurrentGroupId(route.params.groupId);
+
+const isLocationSharingEnabled = ref(true); // invece di false
+
+/*
+ *********************** JUST FOR THE MOMENT TO TEST *************************
+ */
+
+import { useUserGroupsStore } from '@/stores/userGroupsStore.js'
+const userGroupsStore = useUserGroupsStore();
 
 /**************************** Styling elements ****************************/
 
@@ -121,7 +135,10 @@ const handleRouteSubmit = (formData) => {
   closeRouteForm();
 };
 
-onMounted(() => document.addEventListener('click', handleOutsideClick));
+onMounted(async () => {
+  document.addEventListener('click', handleOutsideClick);
+  await userGroupsStore.fetchUserGroups();
+});
 onBeforeUnmount(() => document.removeEventListener('click', handleOutsideClick));
 </script>
 
@@ -174,10 +191,17 @@ onBeforeUnmount(() => document.removeEventListener('click', handleOutsideClick))
   cursor: pointer;
 }
 
-.route-fab {
+/* Fab */
+.fab-container {
   position: absolute;
   top: 20px;
   right: 20px;
+  display: flex;
+  gap: 12px;
+  z-index: 1000;
+}
+
+.route-fab, .location-fab {
   width: 56px;
   height: 56px;
   border-radius: 50%;
@@ -188,17 +212,52 @@ onBeforeUnmount(() => document.removeEventListener('click', handleOutsideClick))
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s, box-shadow 0.2s;
-  z-index: 1000;
+  transition: all 0.3s ease;
 }
 
-.route-fab:hover {
+.route-fab:hover, .location-fab:hover {
   transform: scale(1.05);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.route-fab svg {
+.route-fab svg, .location-fab svg {
   color: #666;
+  transition: color 0.3s ease;
+}
+
+.location-fab.active {
+  background: #4CAF50;
+  position: relative; /* Importante per l'effetto pulse */
+}
+
+.location-fab.active::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: #4CAF50;
+  animation: pulseAnim 2s ease-out infinite;
+  z-index: -1;
+}
+
+.location-fab.active svg {
+  color: white;
+}
+
+@keyframes pulseAnim {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
 }
 
 /* Scrollbar Styles */

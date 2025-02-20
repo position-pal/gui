@@ -27,22 +27,30 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
   }
 
   async function fetchUserGroups() {
+    console.log("FETCHING GROUPS")
     isLoading.value = true
     error.value = null
     try {
       // TODO: @valerio please take care of this
       // const response = await axios.get('api/user/groups')
       const response = {
-        id: "bb1b250a-e7fb-4bd3-a623-04b88d5055bb",
-        name: "Pimpa",
-        // + other info I don't care
+        data: [
+          {
+            id: "bb1b250a-e7fb-4bd3-a623-04b88d5055bb",
+            name: "Pimpa",
+            // + other info I don't care
+          }
+        ]
       }
+      console.log(">> Response:")
+      console.log(response)
       const trackingState = JSON.parse(localStorage.getItem('trackingState')) || {}
       groups.value = response.data.map(group => ({
         ...group,
         trackingEnabled: trackingState[group.id] !== undefined ? trackingState[group.id] : false
       }))
       initializeWebSockets()
+      console.log(websockets)
     } catch (e) {
       error.value = e.message
     } finally {
@@ -52,7 +60,7 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
 
   function initializeWebSockets() {
     groups.value.forEach(group => {
-      if (group.trackingEnabled && !websockets.value.has(group.id)) {
+      if (group?.trackingEnabled && !websockets.value.has(group.id)) {
         openWebSocket(group.id)
       }
     })
@@ -60,7 +68,8 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
 
   function openWebSocket(groupId) {
     if (websockets.value.has(groupId)) return
-    const userData = sessionStorage.getItem("userData") || { id: "" }
+    const userData = sessionStorage.getItem("userData")
+    console.log(`Opening ws for ${groupId} by ${userData}`)
     const ws = new WebSocket(
       `ws://localhost:3000/ws/location/${groupId}/${userData.id}`
     )
