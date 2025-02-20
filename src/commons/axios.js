@@ -21,13 +21,12 @@ export function axiosSetup() {
   axios.interceptors.response.use(
     (response) => response,
     async function (error) {
-      console.error(error);
+      console.error(error)
       if (error.response.data.code === 401) {
         await sessionStorage.removeItem("authToken");
-        return router.push({ name: "Login" });
-      } else {
-        return Promise.reject(error);
+        await router.push({ name: "Login" });
       }
+      return Promise.reject(error);
     }
   )
 }
