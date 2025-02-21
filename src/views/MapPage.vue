@@ -14,7 +14,7 @@
         class="location-fab"
         @click="toggleLocationSharing"
         :class="{ 'active': isLocationSharingEnabled }"
-        :title="isLocationSharingEnabled ? 'Disabilita condivisione posizione' : 'Abilita condivisione posizione'"
+        :title="isLocationSharingEnabled ? 'Disable location sharing' : 'Enable location sharing'"
       >
         <svg
           width="24"
@@ -79,34 +79,30 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useGroupMapStore } from '@/stores/groupMapStore.js'
+import { useUserGroupsStore } from '@/stores/userGroupsStore.js'
 import { useRoute } from 'vue-router'
 import MapView from '../components/map/MapView.vue';
 import UsersList from '../components/map/UsersList.vue';
 import RouteFormDialog from '../components/map/RouteFormDialog.vue';
 
-const route = useRoute();
-const store = useGroupMapStore();
-store.setCurrentGroupId(route.params.groupId);
-
-const isLocationSharingEnabled = ref(false); // invece di false
-
-/*
- *********************** JUST FOR THE MOMENT TO TEST *************************
- */
-
-import { useUserGroupsStore } from '@/stores/userGroupsStore.js'
+const mapStore = useGroupMapStore();
 const userGroupsStore = useUserGroupsStore();
+const route = useRoute();
 
-/**************************** Styling elements ****************************/
+const groupId = route.params.groupId;
 
-const containerHeight = ref(300);
 const minHeight = 80;
+const containerHeight = ref(300);
 const isMinimized = ref(false);
 const defaultHeight = 300;
 const showRouteForm = ref(false);
 const listContainer = ref(null);
+
+const isLocationSharingEnabled = computed(() =>
+  userGroupsStore.groupsWithConnection.find(g => g.id === groupId)?.isConnected || false
+)
 
 const minimize = () => {
   isMinimized.value = true;
@@ -141,14 +137,21 @@ const closeRouteForm = () => {
 };
 
 const handleRouteSubmit = (formData) => {
-  console.log('Route submitted:', formData);
+  console.log('Route submitted:', formData); // TODO: Implement route sharing
   closeRouteForm();
 };
 
+async function toggleLocationSharing() {
+  console.log("TOGGLE LOCATION SHARING");
+  await userGroupsStore.toggleGroupTracking(groupId)
+}
+
 onMounted(async () => {
   document.addEventListener('click', handleOutsideClick);
+  mapStore.setCurrentGroupId(groupId);
   await userGroupsStore.fetchUserGroups();
 });
+
 onBeforeUnmount(() => document.removeEventListener('click', handleOutsideClick));
 </script>
 

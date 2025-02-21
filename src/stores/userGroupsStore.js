@@ -1,18 +1,23 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import AsyncStorage from '@react-native-async-storage/async-storage' // Per Vue Native
+import { ref, computed, reactive } from 'vue'
+import axios from 'axios'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 export const useUserGroupsStore = defineStore('userGroups', () => {
   const groups = ref([])
-  const websockets = ref(new Map())
+  const websockets = reactive({})
   const isLoading = ref(false)
   const error = ref(null)
 
   const groupsWithConnection = computed(() => {
-    return groups.value.map(group => ({
-      ...group,
-      isConnected: websockets.value.has(group.id) && websockets.value.get(group.id).isConnected
-    }))
+    return groups.value.map(group => {
+      const hasWebSocket = !!websockets[group.id]
+      const isConnected = hasWebSocket ? websockets[group.id].isConnected : false
+      return {
+        ...group,
+        isConnected
+      }
+    })
   })
 
   async function saveTrackingState(groupId, enabled) {
@@ -36,7 +41,7 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
       const response = {
         data: [
           {
-            id: "bb1b250a-e7fb-4bd3-a623-04b88d5055bb",
+            id: "a3dadff2-4669-434b-b58a-d0387fd05e9d",
             name: "Pimpa",
             // + other info I don't care
           }
@@ -60,43 +65,40 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
 
   function initializeWebSockets() {
     groups.value.forEach(group => {
-      if (group?.trackingEnabled && !websockets.value.has(group.id)) {
+      if (group?.trackingEnabled && !websockets[group.id]) {
         openWebSocket(group.id)
       }
     })
   }
 
   function openWebSocket(groupId) {
-    if (websockets.value.has(groupId)) return
-    const userData = sessionStorage.getItem("userData")
-    console.log(`Opening ws for ${groupId} by ${userData}`)
+    if (websockets[groupId]) return
+    const userData = JSON.parse(sessionStorage.getItem("userData"))
     const ws = new WebSocket(
       `ws://localhost:3000/ws/location/${groupId}/${userData.id}`
     )
-    ws.onopen = () => {
-      console.log(`WebSocket connected for group ${groupId}`)
-      websockets.value.set(groupId, { connection: ws, isConnected: true })
+    ws.onopen = async () => {
+      console.log(`WebSocket connected for group ${groupId} and uid ${userData.id}`)
+      websockets[groupId] = { connection: ws, isConnected: true }
     }
     ws.onclose = () => {
-      console.log(`WebSocket disconnected for group ${groupId}`)
-      if (websockets.value.has(groupId)) {
-        websockets.value.get(groupId).isConnected = false
+      console.log(`WebSocket disconnected for group ${groupId} and uid ${userData.id}`)
+      if (websockets[groupId]) {
+        websockets[groupId].isConnected = false
       }
     }
-    ws.onerror = (error) => {
-      console.error(`WebSocket error for group ${groupId}:`, error)
-    }
+    ws.onerror = (error) => console.error(`WebSocket for (${groupId}, ${userData.id}):`, error)
   }
 
   function closeWebSocket(groupId) {
-    if (websockets.value.has(groupId)) {
-      websockets.value.get(groupId).connection.close()
-      websockets.value.delete(groupId)
+    if (websockets[groupId]) {
+      websockets[groupId].connection.close()
+      delete websockets[groupId]
     }
   }
 
   function closeAllWebSockets() {
-    websockets.value.forEach((_, groupId) => closeWebSocket(groupId))
+    Object.keys(websockets).forEach(closeWebSocket)
   }
 
   async function toggleGroupTracking(groupId) {
