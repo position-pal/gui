@@ -13,10 +13,6 @@ import ChatHeader from '../components/chat/ChatHeader.vue';
 import MessageList from '../components/chat/MessageList.vue';
 import MessageInput from '../components/chat/MessageInput.vue';
 
-
-
-
-
 export default {
   name: 'ChatPage',
   components: {
