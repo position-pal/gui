@@ -4,14 +4,26 @@ import {
 } from 'vue-router';
 import HomePage from '@/views/HomePage.vue';
 import ChatPage from '@/views/ChatPage.vue';
-import NotFound from '@/views/NotFound.vue';
+import ProfilePage from '@/views/ProfilePage.vue';
 import LoginPage from '@/views/LoginPage.vue';
+import MapPage from '@/views/MapPage.vue';
+import GroupPage from '@/views/GroupPage.vue';
 
-// add routes map, chat, profile, login
 const routes = [{
     path: '/',
     name: 'Home',
     component: HomePage,
+  },
+  {
+    path: '/groups',
+    name: 'Groups',
+    component: GroupPage,
+  },
+  {
+    path: "/map/:groupId",
+    name: "Map",
+    component: MapPage,
+    props: true,
   },
   {
     path: '/chat',
@@ -21,18 +33,13 @@ const routes = [{
   {
     path: '/profile',
     name: 'Profile',
-    component: NotFound,
+    component: ProfilePage,
   },
   {
     path: '/login',
     name: 'Login',
     component: LoginPage,
   },
-  {
-    path: "/map",
-    name: "Map",
-    component: NotFound
-  }
 ];
 
 const router = createRouter({
