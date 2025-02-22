@@ -1,9 +1,14 @@
 import { defineStore } from 'pinia'
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, watch } from 'vue'
 import axios from 'axios'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { useLocationStore } from '@/stores/locationStore.js'
+import { getLoggedInUser } from '@/scripts/user.js'
 
 export const useUserGroupsStore = defineStore('userGroups', () => {
+  const locationStore = useLocationStore()
+  let locationUnsubscribe = null
+
   const groups = ref([])
   const websockets = reactive({})
   const isLoading = ref(false)
@@ -19,6 +24,38 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
       }
     })
   })
+
+  const hasActiveWebSockets = computed(() => {
+    return Object.keys(websockets).length > 0
+  })
+
+  watch(hasActiveWebSockets,  (hasWebSockets) => {
+    if (hasWebSockets && !locationUnsubscribe) {
+      locationStore.startTracking()
+      locationUnsubscribe = locationStore.addLocationListener(broadcastLocation)
+    } else if (!hasWebSockets && locationUnsubscribe) {
+      locationStore.stopTracking()
+      locationUnsubscribe()
+      locationUnsubscribe = null
+    }
+  })
+
+  function broadcastLocation(position) {
+    Object.entries(websockets).forEach(([groupId, ws]) => {
+      console.log(`Broadcasting location for group ${groupId}. Position is:`, position)
+      console.log(ws.isConnected)
+      if (ws.isConnected) {
+        ws.connection.send(JSON.stringify({
+          SampledLocation: {
+            timestamp: position.timestamp,
+            user: getLoggedInUser().id,
+            group: groupId,
+            position: position.coordinates
+          }
+        }))
+      }
+    })
+  }
 
   async function saveTrackingState(groupId, enabled) {
     const trackingState = JSON.parse(localStorage.getItem('trackingState')) || {}
@@ -80,12 +117,16 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
     ws.onopen = async () => {
       console.log(`WebSocket connected for group ${groupId} and uid ${userData.id}`)
       websockets[groupId] = { connection: ws, isConnected: true }
+      ws.send(JSON.stringify({ Authorization: `Bearer ${sessionStorage.getItem('authToken')}` }))
     }
     ws.onclose = () => {
       console.log(`WebSocket disconnected for group ${groupId} and uid ${userData.id}`)
       if (websockets[groupId]) {
         websockets[groupId].isConnected = false
       }
+    }
+    ws.onmessage = (event) => {
+      console.log(`WebSocket message for group ${groupId} and uid ${userData.id}:`, event.data)
     }
     ws.onerror = (error) => console.error(`WebSocket for (${groupId}, ${userData.id}):`, error)
   }
