@@ -3,7 +3,7 @@ import { ref, computed, reactive, watch } from 'vue'
 import axios from 'axios'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useLocationStore } from '@/stores/locationStore.js'
-import { getLoggedInUser } from '@/scripts/user.js'
+import { getLoggedInUser, getToken } from '@/scripts/user.js'
 
 export const useUserGroupsStore = defineStore('userGroups', () => {
   const locationStore = useLocationStore()
@@ -25,9 +25,7 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
     })
   })
 
-  const hasActiveWebSockets = computed(() => {
-    return Object.keys(websockets).length > 0
-  })
+  const hasActiveWebSockets = computed(() => Object.keys(websockets).length > 0)
 
   watch(hasActiveWebSockets,  (hasWebSockets) => {
     if (hasWebSockets && !locationUnsubscribe) {
@@ -41,18 +39,20 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
   })
 
   function broadcastLocation(position) {
+    console.log("Websockets are: ", websockets.value)
     Object.entries(websockets).forEach(([groupId, ws]) => {
-      console.log(`Broadcasting location for group ${groupId}. Position is:`, position)
       console.log(ws.isConnected)
       if (ws.isConnected) {
-        ws.connection.send(JSON.stringify({
+        const message = {
           SampledLocation: {
             timestamp: position.timestamp,
             user: getLoggedInUser().id,
             group: groupId,
             position: position.coordinates
           }
-        }))
+        }
+        console.log(`Broadcasting message:`, message, " to group", groupId)
+        ws.connection.send(JSON.stringify(message))
       }
     })
   }
@@ -78,7 +78,7 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
       const response = {
         data: [
           {
-            id: "a3dadff2-4669-434b-b58a-d0387fd05e9d",
+            id: "b2f14782-01c7-4104-8deb-fad50c1a8399",
             name: "Pimpa",
             // + other info I don't care
           }
@@ -110,19 +110,20 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
 
   function openWebSocket(groupId) {
     if (websockets[groupId]) return
-    const userData = JSON.parse(sessionStorage.getItem("userData"))
+    const userData = getLoggedInUser()
     const ws = new WebSocket(
       `ws://localhost:3000/ws/location/${groupId}/${userData.id}`
     )
     ws.onopen = async () => {
       console.log(`WebSocket connected for group ${groupId} and uid ${userData.id}`)
       websockets[groupId] = { connection: ws, isConnected: true }
-      ws.send(JSON.stringify({ Authorization: `Bearer ${sessionStorage.getItem('authToken')}` }))
+      console.log("Authenticating WebSocket with: ", getToken())
+      ws.send(JSON.stringify({ Authorization: `Bearer ${getToken()}` }))
     }
     ws.onclose = () => {
       console.log(`WebSocket disconnected for group ${groupId} and uid ${userData.id}`)
       if (websockets[groupId]) {
-        websockets[groupId].isConnected = false
+        closeWebSocket(groupId)
       }
     }
     ws.onmessage = (event) => {
@@ -144,7 +145,10 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
 
   async function toggleGroupTracking(groupId) {
     const group = groups.value.find(g => g.id === groupId)
-    if (!group) return
+    if (!group) {
+      console.error("No group found")
+      return
+    }
     try {
       group.trackingEnabled = !group.trackingEnabled
       await saveTrackingState(groupId, group.trackingEnabled)

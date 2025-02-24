@@ -86,6 +86,7 @@ async function updatePassword(password) {
 
 export {
   getUserByEmail,
+  getToken,
   authenticate,
   login,
   registerAndLogin,

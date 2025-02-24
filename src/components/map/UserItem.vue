@@ -53,12 +53,13 @@ const handleUserClick = () => {
 const hasLocation = computed(() => {
   return props.user.location &&
     typeof props.user.location.latitude === 'number' &&
-    typeof props.user.location.longitude === 'number'
+    typeof props.user.location.longitude === 'number';
 })
 
 const updateDistance = async () => {
   if (currentPosition.value && props.user.location) {
-    distance.value = Math.trunc(locationStore.calculateDistance(props.user.location)) || "N/A"
+    const dist = locationStore.calculateDistance(props.user.location);
+    distance.value = dist != null ? Math.trunc(dist) : "N/A";
   }
 }
 

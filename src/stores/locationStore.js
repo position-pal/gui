@@ -17,12 +17,13 @@ export const useLocationStore = defineStore('location', () => {
   const hasLocation = computed(() => !!currentPosition.value)
 
   const updatePosition = (position) => {
+    console.log("Updating position with: ", position)
     const newPosition = {
       coordinates: {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
       },
-      timestamp: position.timestamp
+      timestamp: new Date().toISOString()
     }
     currentPosition.value = newPosition
     notifyListeners(newPosition)
@@ -58,10 +59,12 @@ export const useLocationStore = defineStore('location', () => {
   }
 
   const startTracking = (options = {}) => {
-    if (watchId.value) {
-      console.log('Already tracking')
-      return
-    } else if (!navigator.geolocation) {
+    console.log("START TRACKING")
+    // if (watchId.value) {
+    //   console.log('Already tracking')
+    //   return
+    // }
+    if (!navigator.geolocation) {
       error.value = "Geolocation is not supported by your browser"
       return
     }
@@ -69,7 +72,7 @@ export const useLocationStore = defineStore('location', () => {
       updateInterval: intervalTime = DEFAULT_UPDATE_INTERVAL,
       distanceFilter = DEFAULT_DISTANCE_FILTER,
       enableHighAccuracy = true,
-      timeout = 5_000
+      timeout = 8_000
     } = options
     isTracking.value = true
     watchId.value = navigator.geolocation.watchPosition(
@@ -115,8 +118,18 @@ export const useLocationStore = defineStore('location', () => {
 
   const calculateDistance = (targetCoords) => {
     if (!currentPosition.value || !targetCoords.longitude || !targetCoords.latitude) return null
-    const from = turf.point([currentPosition.value.longitude, currentPosition.value.latitude])
-    const to = turf.point([targetCoords.longitude, targetCoords.latitude])
+    const from = turf.point(
+      [
+        currentPosition.value.coordinates.longitude,
+        currentPosition.value.coordinates.latitude,
+      ]
+    )
+    const to = turf.point(
+      [
+        targetCoords.longitude,
+        targetCoords.latitude,
+      ]
+    )
     return turf.distance(from, to, { units: 'kilometers' })
   }
 
