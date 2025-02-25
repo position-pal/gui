@@ -62,7 +62,6 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  locationStore.stopTracking()
   if (websocketUnsubscribe) {
     websocketUnsubscribe()
     console.log(`Unsubscribed from group messages of ${groupId}::${localUser.id}`)
