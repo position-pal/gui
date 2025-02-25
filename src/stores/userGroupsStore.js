@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
 import { ref, computed, reactive, watch } from 'vue'
-import axios from 'axios'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useLocationStore } from '@/stores/locationStore.js'
 import { getLoggedInUser, getToken } from '@/scripts/user.js'

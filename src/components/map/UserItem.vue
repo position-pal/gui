@@ -4,7 +4,7 @@
     @click="handleUserClick"
   >
     <div class="icon">
-      <i class="bi bi-person-circle"></i>
+      <i class="bi bi-person-circle" />
     </div>
     <div class="info">
       <h4>
@@ -14,9 +14,13 @@
           :style="{ background: colorForStatus(localUser.state) }"
         >{{ localUser.state }}</span>
       </h4>
-      <p v-if="localUser.lastSeen">{{ localUser.location }} • {{ localUser.lastSeen }}</p>
+      <p v-if="localUser.lastSeen">
+        {{ localUser.location }} • {{ localUser.lastSeen }}
+      </p>
     </div>
-    <div class="distance info-badge">{{ distance }} km</div>
+    <div class="distance info-badge">
+      {{ distance }} km
+    </div>
   </div>
 </template>
 

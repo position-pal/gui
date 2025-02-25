@@ -1,20 +1,33 @@
 <template>
-  <div class="container" @click.self="minimize">
+  <div
+    class="container"
+    @click.self="minimize"
+  >
     <!-- Map component -->
-    <div class="map-wrapper" ref="mapContainer">
+    <div
+      ref="mapContainer"
+      class="map-wrapper"
+    >
       <MapView />
     </div>
     <!-- Container for the buttons to (de)activate position sharing and routing mode -->
     <div class="fab-container">
-      <div class="location-status new-position" :class="{ 'active': isLocationSharingEnabled }">
-        <p v-if="isLocationSharingEnabled">You are sharing your location</p>
-        <p v-else>Location sharing is OFF</p>
+      <div
+        class="location-status new-position"
+        :class="{ 'active': isLocationSharingEnabled }"
+      >
+        <p v-if="isLocationSharingEnabled">
+          You are sharing your location
+        </p>
+        <p v-else>
+          Location sharing is OFF
+        </p>
       </div>
       <button
         class="location-fab"
-        @click="toggleLocationSharing"
         :class="{ 'active': isLocationSharingEnabled }"
         :title="isLocationSharingEnabled ? 'Disable location sharing' : 'Enable location sharing'"
+        @click="toggleLocationSharing"
       >
         <svg
           width="24"
@@ -26,11 +39,19 @@
           stroke-linecap="round"
           stroke-linejoin="round"
         >
-          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-          <circle cx="12" cy="10" r="3"/>
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+          <circle
+            cx="12"
+            cy="10"
+            r="3"
+          />
         </svg>
       </button>
-      <button class="route-fab" @click="openRouteForm" title="Plan your route">
+      <button
+        class="route-fab"
+        title="Plan your route"
+        @click="openRouteForm"
+      >
         <svg
           width="24"
           height="24"
@@ -41,22 +62,32 @@
           stroke-linecap="round"
           stroke-linejoin="round"
         >
-          <path d="M9 20l-5.447-2.724A1 1 0 0 1 3 16.382V5.618a1 1 0 0 1 .553-.894L9 2m0 18v-18m0 18l6-3m-6-15l6-3m-6 0v18m6-18v18m0 0l5.447-2.724A1 1 0 0 0 21 16.382V5.618a1 1 0 0 0-.553-.894L15 2"/>
+          <path d="M9 20l-5.447-2.724A1 1 0 0 1 3 16.382V5.618a1 1 0 0 1 .553-.894L9 2m0 18v-18m0 18l6-3m-6-15l6-3m-6 0v18m6-18v18m0 0l5.447-2.724A1 1 0 0 0 21 16.382V5.618a1 1 0 0 0-.553-.894L15 2" />
         </svg>
       </button>
     </div>
     <!-- Route sharing dialog -->
-    <RouteFormDialog v-if="showRouteForm" @close="closeRouteForm" @submit="handleRouteSubmit" />
+    <RouteFormDialog
+      v-if="showRouteForm"
+      @close="closeRouteForm"
+      @submit="handleRouteSubmit"
+    />
     <!-- Members list container -->
     <div
+      ref="listContainer"
       class="list-container"
       :style="{ height: containerHeight + 'px' }"
       :class="{ minimized: isMinimized }"
-      ref="listContainer"
       @click="maximize"
     >
-      <div class="toggle-button" @click.stop="toggleContainer">
-        <div class="arrow" :class="{ 'arrow-down': !isMinimized }">
+      <div
+        class="toggle-button"
+        @click.stop="toggleContainer"
+      >
+        <div
+          class="arrow"
+          :class="{ 'arrow-down': !isMinimized }"
+        >
           <svg
             width="24"
             height="24"
@@ -67,7 +98,7 @@
             stroke-linecap="round"
             stroke-linejoin="round"
           >
-            <path d="M18 15l-6-6-6 6"/>
+            <path d="M18 15l-6-6-6 6" />
           </svg>
         </div>
       </div>
