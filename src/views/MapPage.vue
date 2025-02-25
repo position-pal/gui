@@ -1,7 +1,14 @@
 <template>
-  <div class="container" @click.self="minimize">
+  <div
+    class="container"
+    @click.self="minimize"
+  >
     <MapView />
-    <button class="route-fab" @click="openRouteForm" title="Plan your route">
+    <button
+      class="route-fab"
+      title="Plan your route"
+      @click="openRouteForm"
+    >
       <svg
         width="24"
         height="24"
@@ -12,19 +19,29 @@
         stroke-linecap="round"
         stroke-linejoin="round"
       >
-        <path d="M9 20l-5.447-2.724A1 1 0 0 1 3 16.382V5.618a1 1 0 0 1 .553-.894L9 2m0 18v-18m0 18l6-3m-6-15l6-3m-6 0v18m6-18v18m0 0l5.447-2.724A1 1 0 0 0 21 16.382V5.618a1 1 0 0 0-.553-.894L15 2"/>
+        <path d="M9 20l-5.447-2.724A1 1 0 0 1 3 16.382V5.618a1 1 0 0 1 .553-.894L9 2m0 18v-18m0 18l6-3m-6-15l6-3m-6 0v18m6-18v18m0 0l5.447-2.724A1 1 0 0 0 21 16.382V5.618a1 1 0 0 0-.553-.894L15 2" />
       </svg>
     </button>
-    <RouteFormDialog v-if="showRouteForm" @close="closeRouteForm" @submit="handleRouteSubmit" />
+    <RouteFormDialog
+      v-if="showRouteForm"
+      @close="closeRouteForm"
+      @submit="handleRouteSubmit"
+    />
     <div
+      ref="listContainer"
       class="list-container"
       :style="{ height: containerHeight + 'px' }"
       :class="{ minimized: isMinimized }"
-      ref="listContainer"
       @click="maximize"
     >
-      <div class="toggle-button" @click.stop="toggleContainer">
-        <div class="arrow" :class="{ 'arrow-down': !isMinimized }">
+      <div
+        class="toggle-button"
+        @click.stop="toggleContainer"
+      >
+        <div
+          class="arrow"
+          :class="{ 'arrow-down': !isMinimized }"
+        >
           <svg
             width="24"
             height="24"
@@ -35,7 +52,7 @@
             stroke-linecap="round"
             stroke-linejoin="round"
           >
-            <path d="M18 15l-6-6-6 6"/>
+            <path d="M18 15l-6-6-6 6" />
           </svg>
         </div>
       </div>
