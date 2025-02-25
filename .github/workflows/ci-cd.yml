@@ -23,6 +23,8 @@ jobs:
         run: npm install
       - name: Simply test if the build is working
         run: npm run build
+      - name: Lint
+        run: npm run lint
 
 #  dry-delivery:
 #    needs: build
