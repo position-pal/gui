@@ -4,74 +4,104 @@
     @click="handleUserClick"
   >
     <div class="icon">
-      <i class="bi bi-person-circle" />
+      <i class="bi bi-person-circle"></i>
     </div>
     <div class="info">
       <h4>
-        {{ user.name }}
+        {{ localUser.name }}
         <span
           class="info-badge"
-          :style="{ background: colorForStatus(user.state) }"
-        >{{ user.state }}</span>
+          :style="{ background: colorForStatus(localUser.state) }"
+        >{{ localUser.state }}</span>
       </h4>
-      <p v-if="user.location">
-        {{ user.location }} • {{ user.lastSeen }}
-      </p>
+      <p v-if="localUser.lastSeen">{{ localUser.location }} • {{ localUser.lastSeen }}</p>
     </div>
-    <div class="distance info-badge">
-      {{ distance }} km
-    </div>
+    <div class="distance info-badge">{{ distance }} km</div>
   </div>
 </template>
 
 <script setup>
 import { useLocationStore } from '@/stores/locationStore.js'
 import { useGroupMapStore } from '@/stores/groupMapStore.js'
+import { useUserGroupsStore } from '@/stores/userGroupsStore.js'
 import { storeToRefs } from 'pinia'
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 
 const props = defineProps({
   user: {
     type: Object,
     required: true
-  }
+  },
 })
+
+// const emit = defineEmits(['update:user'])
+const localUser = reactive({ ...props.user })
+
+watch(() => props.user, (newUser) => {
+  Object.assign(localUser, newUser)
+}, { deep: true })
 
 const locationStore = useLocationStore()
 const groupMapStore = useGroupMapStore()
+const userGroupsStore = useUserGroupsStore()
 const { currentPosition } = storeToRefs(locationStore)
+let websocketUnsubscribe = null
 const distance = ref("N/A")
+const groupId = groupMapStore.groupId;
 
 const handleUserClick = () => {
-  const success = groupMapStore.selectUser(props.user.id)
-  console.log('User selected:', props.user.id, success)
+  const success = groupMapStore.selectUser(localUser.id)
   if (!success && hasLocation.value) {
     console.warn('User location not available')
   }
 }
 
 const hasLocation = computed(() => {
-  return props.user.location &&
-    typeof props.user.location.latitude === 'number' &&
-    typeof props.user.location.longitude === 'number';
+  return localUser.location &&
+    typeof localUser.location.latitude === 'number' &&
+    typeof localUser.location.longitude === 'number';
 })
 
 const updateDistance = async () => {
-  if (currentPosition.value && props.user.location) {
-    const dist = locationStore.calculateDistance(props.user.location);
+  if (currentPosition.value && localUser.location) {
+    const dist = locationStore.calculateDistance(localUser.location);
     distance.value = dist != null ? Math.trunc(dist) : "N/A";
   }
 }
 
+const handleWebsocketMessage = (message) => {
+  if (message && message.UserUpdate) {
+    const { user, group, position, status, timestamp } = message.UserUpdate
+    if (user === localUser.id && group === groupId) {
+      const sessionData = {
+        state: status.toUpperCase(),
+        location: position?.[0],
+        lastSeen: timestamp,
+      }
+      console.log("New data: ", sessionData)
+      groupMapStore.updateUserSession(localUser.id, sessionData)
+      updateDistance()
+    }
+  }
+}
+
 watch(currentPosition, updateDistance)
-watch(() => props.user.location, updateDistance, { deep: true })
+watch(() => localUser.location, updateDistance, { deep: true })
 
 onMounted(() => {
   locationStore.startTracking()
   updateDistance()
+  websocketUnsubscribe = userGroupsStore.addGroupMessageListener(groupId, handleWebsocketMessage)
+  console.log(`Subscribed to group messages of ${groupId}::${localUser.id}`)
 })
 
-onUnmounted(() => locationStore.stopTracking())
+onUnmounted(() => {
+  locationStore.stopTracking()
+  if (websocketUnsubscribe) {
+    websocketUnsubscribe()
+    console.log(`Unsubscribed from group messages of ${groupId}::${localUser.id}`)
+  }
+})
 
 // Styling utility functions
 

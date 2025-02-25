@@ -101,7 +101,7 @@ const showRouteForm = ref(false);
 const listContainer = ref(null);
 
 const isLocationSharingEnabled = computed(() =>
-  userGroupsStore.groupsWithConnection.find(g => g.id === groupId)?.isConnected || false
+  userGroupsStore.groupsWithConnection.find(g => g.id === groupId)?.trackingEnabled || false
 )
 
 const minimize = () => {
@@ -142,7 +142,6 @@ const handleRouteSubmit = (formData) => {
 };
 
 async function toggleLocationSharing() {
-  console.log("TOGGLE LOCATION SHARING");
   await userGroupsStore.toggleGroupTracking(groupId)
 }
 
