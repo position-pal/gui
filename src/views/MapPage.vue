@@ -1,7 +1,7 @@
 <template>
   <div class="container" @click.self="minimize">
     <!-- Map component -->
-    <div class="map-wrapper">
+    <div class="map-wrapper" ref="mapContainer">
       <MapView />
     </div>
     <!-- Container for the buttons to (de)activate position sharing and routing mode -->
@@ -79,7 +79,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useGroupMapStore } from '@/stores/groupMapStore.js'
 import { useUserGroupsStore } from '@/stores/userGroupsStore.js'
 import { useRoute } from 'vue-router'
@@ -98,6 +98,7 @@ const containerHeight = ref(300);
 const isMinimized = ref(false);
 const defaultHeight = 300;
 const showRouteForm = ref(false);
+const mapContainer = ref(null);
 const listContainer = ref(null);
 
 const isLocationSharingEnabled = computed(() =>
@@ -105,27 +106,21 @@ const isLocationSharingEnabled = computed(() =>
 )
 
 const minimize = () => {
-  isMinimized.value = true;
-  containerHeight.value = minHeight;
+  if (!isMinimized.value) {
+    isMinimized.value = true;
+    containerHeight.value = minHeight;
+  }
 };
 
-const maximize = (event) => {
-  event.stopPropagation();
+const maximize = () => {
   if (isMinimized.value) {
     isMinimized.value = false;
     containerHeight.value = defaultHeight;
   }
 };
 
-const toggleContainer = (event) => {
-  event.stopPropagation();
-  isMinimized.value ? maximize(event) : minimize();
-};
-
-const handleOutsideClick = (event) => {
-  if (listContainer.value && !listContainer.value.contains(event.target)) {
-    minimize();
-  }
+const toggleContainer = () => {
+  isMinimized.value ? maximize() : minimize();
 };
 
 const openRouteForm = () => {
@@ -133,6 +128,7 @@ const openRouteForm = () => {
 };
 
 const closeRouteForm = () => {
+  maximize();
   showRouteForm.value = false;
 };
 
@@ -142,16 +138,14 @@ const handleRouteSubmit = (formData) => {
 };
 
 async function toggleLocationSharing() {
+  maximize()
   await userGroupsStore.toggleGroupTracking(groupId)
 }
 
 onMounted(async () => {
-  document.addEventListener('click', handleOutsideClick);
   mapStore.setCurrentGroupId(groupId);
   await userGroupsStore.fetchUserGroups();
 });
-
-onBeforeUnmount(() => document.removeEventListener('click', handleOutsideClick));
 </script>
 
 <style scoped>
