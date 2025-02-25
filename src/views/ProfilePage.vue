@@ -2,63 +2,134 @@
   <div class="profile-container">
     <div class="row justify-content-center w-100">
       <div class="col-12 col-md-8 col-lg-6">
-        <div class="card profile-card" :class="{ destroy: isLoggingOut }">
+        <div
+          class="card profile-card"
+          :class="{ destroy: isLoggingOut }"
+        >
           <div class="card-body text-center">
             <div class="d-flex justify-content-center">
               <img
                 :src="`https://ui-avatars.com/api/?background=random&name=${firstName}+${lastName}`"
                 alt="Avatar"
                 class="profile-avatar"
-              />
+              >
             </div>
-            <transition name="slide-fade" mode="out-in" appear>
-              <div v-if="!isEditingName" key="display-name">
-                <h3 class="mt-3">{{ fullName }}</h3>
+            <transition
+              name="slide-fade"
+              mode="out-in"
+              appear
+            >
+              <div
+                v-if="!isEditingName"
+                key="display-name"
+              >
+                <h3 class="mt-3">
+                  {{ fullName }}
+                </h3>
               </div>
-              <div v-else key="edit-name" class="mt-3">
-                <input v-model="firstName" placeholder="Name" class="form-control mb-2" />
-                <input v-model="lastName" placeholder="Surname" class="form-control mb-2" />
-                <div class="d-grid gap-2">
-                  <button @click="saveName" class="btn btn-success btn-pill">Save</button>
-                  <button @click="cancelEditName" class="btn btn-secondary btn-pill">Cancel</button>
-                </div>
-              </div>
-            </transition>
-            <div class="mt-3">
-              <div class="info-item">{{ this.email }}</div>
-            </div>
-            <transition name="slide-fade" mode="out-in" appear>
-              <div v-if="isChangingPassword" key="change-password" class="mt-3">
+              <div
+                v-else
+                key="edit-name"
+                class="mt-3"
+              >
                 <input
-                  type="password"
-                  v-model="newPassword"
-                  placeholder="New password"
+                  v-model="firstName"
+                  placeholder="Name"
                   class="form-control mb-2"
-                />
+                >
                 <input
-                  type="password"
-                  v-model="confirmPassword"
-                  placeholder="Confirm password"
+                  v-model="lastName"
+                  placeholder="Surname"
                   class="form-control mb-2"
-                />
+                >
                 <div class="d-grid gap-2">
-                  <button @click="updatePassword" class="btn btn-success btn-pill">
-                    Update Password
+                  <button
+                    class="btn btn-success btn-pill"
+                    @click="saveName"
+                  >
+                    Save
                   </button>
-                  <button @click="cancelChangePassword" class="btn btn-secondary btn-pill">
+                  <button
+                    class="btn btn-secondary btn-pill"
+                    @click="cancelEditName"
+                  >
                     Cancel
                   </button>
                 </div>
               </div>
             </transition>
-            <transition name="fade" mode="out-in" appear>
-              <div v-if="!isEditingName && !isChangingPassword" key="action-buttons" class="mt-4">
+            <div class="mt-3">
+              <div class="info-item">
+                {{ email }}
+              </div>
+            </div>
+            <transition
+              name="slide-fade"
+              mode="out-in"
+              appear
+            >
+              <div
+                v-if="isChangingPassword"
+                key="change-password"
+                class="mt-3"
+              >
+                <input
+                  v-model="newPassword"
+                  type="password"
+                  placeholder="New password"
+                  class="form-control mb-2"
+                >
+                <input
+                  v-model="confirmPassword"
+                  type="password"
+                  placeholder="Confirm password"
+                  class="form-control mb-2"
+                >
                 <div class="d-grid gap-2">
-                  <button @click="editName" class="btn btn-primary btn-pill">Update User</button>
-                  <button @click="changePassword" class="btn btn-warning btn-pill">
+                  <button
+                    class="btn btn-success btn-pill"
+                    @click="updatePassword"
+                  >
+                    Update Password
+                  </button>
+                  <button
+                    class="btn btn-secondary btn-pill"
+                    @click="cancelChangePassword"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </transition>
+            <transition
+              name="fade"
+              mode="out-in"
+              appear
+            >
+              <div
+                v-if="!isEditingName && !isChangingPassword"
+                key="action-buttons"
+                class="mt-4"
+              >
+                <div class="d-grid gap-2">
+                  <button
+                    class="btn btn-primary btn-pill"
+                    @click="editName"
+                  >
+                    Update User
+                  </button>
+                  <button
+                    class="btn btn-warning btn-pill"
+                    @click="changePassword"
+                  >
                     Change Password
                   </button>
-                  <button @click="logout" class="btn btn-danger btn-pill">Logout</button>
+                  <button
+                    class="btn btn-danger btn-pill"
+                    @click="logout"
+                  >
+                    Logout
+                  </button>
                 </div>
               </div>
             </transition>
@@ -93,16 +164,16 @@ export default {
       confirmPassword: '',
     }
   },
+  computed: {
+    fullName() {
+      return `${this.firstName} ${this.lastName}`
+    },
+  },
   mounted() {
     const userData = getLoggedInUser() || {}
     this.firstName = userData.name || ''
     this.lastName = userData.surname || ''
     this.email = userData.email || ''
-  },
-  computed: {
-    fullName() {
-      return `${this.firstName} ${this.lastName}`
-    },
   },
   methods: {
     editName() {

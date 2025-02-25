@@ -1,6 +1,8 @@
 <template>
   <div class="h-100 group-container p-1">
-    <h1 class="mt-3 p-1">Groups</h1>
+    <h1 class="mt-3 p-1">
+      Groups
+    </h1>
     <!-- Container scrollabile -->
     <ul class="list-group overflow-auto">
       <li
@@ -9,7 +11,9 @@
         class="list-group-item d-flex justify-content-between align-items-center"
       >
         <div>
-          <h5 class="mb-1">{{ group.name }}</h5>
+          <h5 class="mb-1">
+            {{ group.name }}
+          </h5>
           <small class="text-muted">{{ group.members }} members</small>
         </div>
         <div class="d-flex gap-2">
@@ -19,7 +23,7 @@
             style="width: 40px; height: 40px"
             to="/map"
           >
-            <i class="bi bi-pin-map"></i>
+            <i class="bi bi-pin-map" />
           </router-link>
           <!-- Pulsante per la chat -->
           <router-link
@@ -27,7 +31,7 @@
             style="width: 40px; height: 40px"
             to="/chat"
           >
-            <i class="bi bi-chat"></i>
+            <i class="bi bi-chat" />
           </router-link>
         </div>
       </li>

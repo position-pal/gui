@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import axios from 'axios'
 import AsyncStorage from '@react-native-async-storage/async-storage' // Per Vue Native
 
 export const useUserGroupsStore = defineStore('userGroups', () => {
