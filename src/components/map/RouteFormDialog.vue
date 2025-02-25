@@ -1,6 +1,12 @@
 <template>
-  <div class="route-dialog-overlay" @click="$emit('close')">
-    <div class="route-dialog" @click.stop>
+  <div
+    class="route-dialog-overlay"
+    @click="$emit('close')"
+  >
+    <div
+      class="route-dialog"
+      @click.stop
+    >
       <h3>Start a monitored journey</h3>
       <p class="route-description">
         Share your destination and arrival time to get monitored by other group members.
@@ -9,9 +15,9 @@
         <div class="form-group">
           <label for="destination">Destination</label>
           <input
-            type="text"
             id="destination"
             v-model="formData.destination"
+            type="text"
             placeholder="Where are you going?"
             required
           >
@@ -19,15 +25,26 @@
         <div class="form-group">
           <label for="arrivalTime">Expected Arrival Time</label>
           <input
-            type="datetime-local"
             id="arrivalTime"
             v-model="formData.arrivalTime"
+            type="datetime-local"
             required
           >
         </div>
         <div class="form-actions">
-          <button type="button" class="btn-secondary" @click="$emit('close')">Cancel</button>
-          <button type="submit" class="btn-primary">Start Routing</button>
+          <button
+            type="button"
+            class="btn-secondary"
+            @click="$emit('close')"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="btn-primary"
+          >
+            Start Routing
+          </button>
         </div>
       </form>
     </div>
@@ -37,6 +54,7 @@
 <script>
 export default {
   name: 'RouteFormDialog',
+  emits: ['close', 'submit'],
   data() {
     return {
       formData: {

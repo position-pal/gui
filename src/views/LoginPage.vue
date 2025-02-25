@@ -1,60 +1,141 @@
 <template>
   <div class="login-container">
-    <div class="card p-4" ref="cardContainer" :style="{ height: cardHeight + 'px' }">
+    <div
+      ref="cardContainer"
+      class="card p-4"
+      :style="{ height: cardHeight + 'px' }"
+    >
       <div class="form-container">
-        <transition name="slide" mode="out-in" @after-enter="updateHeight">
-          <div v-if="isLogin" key="login" class="form-slide">
-            <h3 class="text-center">Login</h3>
+        <transition
+          name="slide"
+          mode="out-in"
+          @after-enter="updateHeight"
+        >
+          <div
+            v-if="isLogin"
+            key="login"
+            class="form-slide"
+          >
+            <h3 class="text-center">
+              Login
+            </h3>
             <form @submit.prevent="handleLogin">
               <div class="mb-3">
-                <label for="login-email" class="form-label">Email</label>
-                <input v-model="loginData.email" type="email" class="form-control" required />
+                <label
+                  for="login-email"
+                  class="form-label"
+                >Email</label>
+                <input
+                  v-model="loginData.email"
+                  type="email"
+                  class="form-control"
+                  required
+                >
               </div>
               <div class="mb-3">
-                <label for="login-password" class="form-label">Password</label>
-                <input v-model="loginData.password" type="password" class="form-control" required />
+                <label
+                  for="login-password"
+                  class="form-label"
+                >Password</label>
+                <input
+                  v-model="loginData.password"
+                  type="password"
+                  class="form-control"
+                  required
+                >
               </div>
-              <button type="submit" class="btn btn-primary w-100">Login</button>
+              <button
+                type="submit"
+                class="btn btn-primary w-100"
+              >
+                Login
+              </button>
             </form>
           </div>
 
-          <div v-else key="register" class="form-slide">
-            <h3 class="text-center">Sign In</h3>
+          <div
+            v-else
+            key="register"
+            class="form-slide"
+          >
+            <h3 class="text-center">
+              Sign In
+            </h3>
             <form @submit.prevent="handleRegister">
               <div class="row mb-3 g-2">
                 <div class="col-6">
-                  <label for="register-name" class="form-label">Name</label>
-                  <input v-model="registerData.name" type="text" class="form-control" required />
+                  <label
+                    for="register-name"
+                    class="form-label"
+                  >Name</label>
+                  <input
+                    v-model="registerData.name"
+                    type="text"
+                    class="form-control"
+                    required
+                  >
                 </div>
                 <div class="col-6">
-                  <label for="register-surname" class="form-label">Surname</label>
-                  <input v-model="registerData.surname" type="text" class="form-control" required />
+                  <label
+                    for="register-surname"
+                    class="form-label"
+                  >Surname</label>
+                  <input
+                    v-model="registerData.surname"
+                    type="text"
+                    class="form-control"
+                    required
+                  >
                 </div>
               </div>
               <div class="mb-3">
-                <label for="register-email" class="form-label">Email</label>
-                <input v-model="registerData.email" type="email" class="form-control" required />
+                <label
+                  for="register-email"
+                  class="form-label"
+                >Email</label>
+                <input
+                  v-model="registerData.email"
+                  type="email"
+                  class="form-control"
+                  required
+                >
               </div>
               <div class="mb-3">
-                <label for="register-password" class="form-label">Password</label>
+                <label
+                  for="register-password"
+                  class="form-label"
+                >Password</label>
                 <input
                   v-model="registerData.password"
                   type="password"
                   class="form-control"
                   required
-                />
+                >
               </div>
-              <button type="submit" class="btn btn-success w-100">Sign In</button>
+              <button
+                type="submit"
+                class="btn btn-success w-100"
+              >
+                Sign In
+              </button>
             </form>
           </div>
         </transition>
       </div>
 
       <div class="toggle-container">
-        <button @click="toggleForm(true)" :class="{ active: isLogin }" class="toggle-btn">
+        <button
+          :class="{ active: isLogin }"
+          class="toggle-btn"
+          @click="toggleForm(true)"
+        >
           Login
         </button>
-        <button @click="toggleForm(false)" :class="{ active: !isLogin }" class="toggle-btn">
+        <button
+          :class="{ active: !isLogin }"
+          class="toggle-btn"
+          @click="toggleForm(false)"
+        >
           Sign In
         </button>
       </div>
