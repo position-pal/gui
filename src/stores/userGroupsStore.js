@@ -104,11 +104,6 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
         }
       })
       initializeWebSockets()
-      if (groups.value.some(g => g.trackingEnabled && !locationUnsubscribe)){
-        locationStore.startTracking()
-        locationUnsubscribe = locationStore.addLocationListener(broadcastLocation)
-      }
-      console.log(websockets)
     } catch (e) {
       error.value = e.message
     } finally {
@@ -127,22 +122,24 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
   function openWebSocket(groupId) {
     if (websockets[groupId]) return
     const userData = getLoggedInUser()
+    console.log(`[WS] Opening WebSocket for group ${groupId}`)
+    console.log(`[WS] Already present websockets:`, websockets)
     const ws = new WebSocket(
       `ws://localhost:3000/ws/location/${groupId}/${userData.id}`
     )
     ws.onopen = async () => {
-      console.log(`[WS] WebSocket connected for group ${groupId} and uid ${userData.id}`)
+      console.log(`[WS] WebSocket connected for group ${groupId}`)
       console.log("[WS] Authenticating WebSocket")
       ws.send(JSON.stringify({ Authorization: `Bearer ${getToken()}` }))
     }
     ws.onclose = () => {
-      console.log(`[WS] WebSocket disconnected for group ${groupId} and uid ${userData.id}`)
+      console.log(`[WS] WebSocket disconnected for group ${groupId}`)
       if (websockets[groupId]) {
         closeWebSocket(groupId)
       }
     }
     ws.onmessage = (message) => {
-      console.log(`[WS] WebSocket message for group ${groupId} and uid ${userData.id}:`, message.data)
+      console.log(`[WS] WebSocket message for group ${groupId}:`, message.data)
       if (message.data === "OK") {
         websockets[groupId] = { connection: ws, isConnected: true }
       } else if (message.data === "Unauthorized") {
@@ -151,37 +148,41 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
         router.push({ name: 'login' }).then(() => console.log("Redirected to login"))
       } else {
         try {
-          message.data.text().then(text => {
-            try {
-              const data = JSON.parse(text)
-              console.log("Received message:", data)
-              if (messageListeners[groupId]) {
-                messageListeners[groupId].forEach(listener => {
-                  listener(data)
-                })
-              }
-            } catch (e) {
-              console.error("[WS] Error parsing message:", e)
-              console.log("[WS] Raw message content: ", text)
-            }
-          })
+          if (typeof  message.data === 'string') {
+            handleMessage(JSON.parse(message.data), groupId)
+          } else if (message.data instanceof Blob) {
+            message.data.text().then(text => handleMessage(JSON.parse(text), groupId))
+          } else {
+            console.error("[WS] Unexpected message type:", message.data)
+          }
         } catch (e) {
           console.error("[WS] Error parsing message:", e)
         }
       }
     }
     ws.onerror = (error) => console.error(`WebSocket for (${groupId}, ${userData.id}):`, error)
+    console.log(`[WS] All websockets: `, websockets)
+  }
+
+  function handleMessage(data, groupId) {
+    console.log("[WS] Received message:", data)
+    if (messageListeners[groupId]) {
+      messageListeners[groupId].forEach(listener => {
+        try {
+          listener(data)
+        } catch (e) {
+          console.error("[WS] Error notifying listener:", e)
+        }
+      })
+    }
   }
 
   function closeWebSocket(groupId) {
     if (websockets[groupId]) {
       websockets[groupId].connection.close()
       delete websockets[groupId]
+      delete messageListeners[groupId]
     }
-  }
-
-  function closeAllWebSockets() {
-    Object.keys(websockets).forEach(closeWebSocket)
   }
 
   async function toggleGroupTracking(groupId) {
@@ -195,14 +196,6 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
       await saveTrackingState(groupId, group.trackingEnabled)
       if (!websockets[groupId]) {
         openWebSocket(groupId)
-      }
-      if (hasActiveTracking.value && !locationUnsubscribe) {
-        locationStore.startTracking()
-        locationUnsubscribe = locationStore.addLocationListener(broadcastLocation)
-      } else if (!hasActiveTracking.value && locationUnsubscribe) {
-        locationStore.stopTracking()
-        locationUnsubscribe()
-        locationUnsubscribe = null
       }
     } catch (e) {
       error.value = e.message
@@ -227,6 +220,16 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
     }
   }
 
+  function cleanup() {
+    Object.keys(websockets).forEach(closeWebSocket)
+    Object.keys(messageListeners).forEach(groupId => delete messageListeners[groupId])
+    if (locationUnsubscribe) {
+      locationStore.stopTracking()
+      locationUnsubscribe()
+      locationUnsubscribe = null
+    }
+  }
+
   return {
     groups,
     groupsWithConnection,
@@ -235,6 +238,6 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
     fetchUserGroups,
     addGroupMessageListener,
     toggleGroupTracking,
-    closeAllWebSockets
+    cleanup
   }
 })

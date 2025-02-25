@@ -34,27 +34,15 @@ const props = defineProps({
   },
 })
 
-// const emit = defineEmits(['update:user'])
-const localUser = reactive({ ...props.user })
-
-watch(() => props.user, (newUser) => {
-  Object.assign(localUser, newUser)
-}, { deep: true })
-
 const locationStore = useLocationStore()
 const groupMapStore = useGroupMapStore()
 const userGroupsStore = useUserGroupsStore()
 const { currentPosition } = storeToRefs(locationStore)
-let websocketUnsubscribe = null
-const distance = ref("N/A")
-const groupId = groupMapStore.groupId;
 
-const handleUserClick = () => {
-  const success = groupMapStore.selectUser(localUser.id)
-  if (!success && hasLocation.value) {
-    console.warn('User location not available')
-  }
-}
+const distance = ref("N/A")
+const localUser = reactive({ ...props.user })
+let websocketUnsubscribe = null
+const groupId = groupMapStore.groupId;
 
 const hasLocation = computed(() => {
   return localUser.location &&
@@ -62,29 +50,7 @@ const hasLocation = computed(() => {
     typeof localUser.location.longitude === 'number';
 })
 
-const updateDistance = async () => {
-  if (currentPosition.value && localUser.location) {
-    const dist = locationStore.calculateDistance(localUser.location);
-    distance.value = dist != null ? Math.trunc(dist) : "N/A";
-  }
-}
-
-const handleWebsocketMessage = (message) => {
-  if (message && message.UserUpdate) {
-    const { user, group, position, status, timestamp } = message.UserUpdate
-    if (user === localUser.id && group === groupId) {
-      const sessionData = {
-        state: status.toUpperCase(),
-        location: position?.[0],
-        lastSeen: timestamp,
-      }
-      console.log("New data: ", sessionData)
-      groupMapStore.updateUserSession(localUser.id, sessionData)
-      updateDistance()
-    }
-  }
-}
-
+watch(() => props.user, (newUser) => Object.assign(localUser, newUser), { deep: true })
 watch(currentPosition, updateDistance)
 watch(() => localUser.location, updateDistance, { deep: true })
 
@@ -103,9 +69,37 @@ onUnmounted(() => {
   }
 })
 
-// Styling utility functions
+const handleUserClick = () => {
+  const success = groupMapStore.selectUser(localUser.id)
+  if (!success && hasLocation.value) {
+    console.warn('User location not available')
+  }
+}
 
-const colorForStatus = (status) => {
+async function updateDistance() {
+  if (currentPosition.value && localUser.location) {
+    const dist = locationStore.calculateDistance(localUser.location);
+    distance.value = dist != null ? Math.trunc(dist) : "N/A";
+  }
+}
+
+function handleWebsocketMessage(message) {
+  if (message && message.UserUpdate) {
+    const { user, group, position, status, timestamp } = message.UserUpdate
+    if (user === localUser.id && group === groupId) {
+      const sessionData = {
+        state: status.toUpperCase(),
+        location: position?.[0],
+        lastSeen: timestamp,
+      }
+      console.log('Updating user session:', sessionData)
+      groupMapStore.updateUserSession(localUser.id, sessionData)
+      updateDistance()
+    }
+  }
+}
+
+function colorForStatus(status) {
   switch (status) {
     case 'ACTIVE': return '#1AAB8A';
     case 'SOS': return '#FF0000';

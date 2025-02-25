@@ -16,7 +16,6 @@ export const useGroupMapStore = defineStore('groupMap', () => {
       return {
         id: user.id,
         name: `${user.name} ${user.surname}`,
-        email: user.email,
         state: userInfo?.state || 'INACTIVE',
         lastSeen: userInfo?.lastSeen,
         location: userInfo?.location,
@@ -85,8 +84,9 @@ export const useGroupMapStore = defineStore('groupMap', () => {
   }
 
   function updateUserSession(userId, sessionData) {
-    if (!sessions.value[userId]) return
     sessions.value[userId] = {
+      id: userId,
+      name: users.value.find((user) => user.id === userId).name,
       ...sessions.value[userId],
       ...sessionData,
       lastSeen: new Date().toLocaleString(),

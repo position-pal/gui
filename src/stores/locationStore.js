@@ -60,7 +60,7 @@ export const useLocationStore = defineStore('location', () => {
 
   const startTracking = (options = {}) => {
     if (watchId.value) {
-      console.log('Already tracking')
+      console.log('[Location] Already tracking')
       return
     } else if (!navigator.geolocation) {
       console.error("Geolocation is not supported by your browser")
@@ -73,7 +73,7 @@ export const useLocationStore = defineStore('location', () => {
       enableHighAccuracy = true,
       timeout = 8_000
     } = options
-    console.log("Starting tracking with options: ", options)
+    console.log("[Location] Start tracking with options: ", options)
     isTracking.value = true
     watchId.value = navigator.geolocation.watchPosition(
       updatePosition,
