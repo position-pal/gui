@@ -30,9 +30,7 @@ onMounted(() => {
   updateMarkers()
 });
 
-watch(() => groupStore.usersInfo, () => {
-  updateMarkers()
-}, { deep: true })
+watch(() => groupStore.usersInfo, updateMarkers, { deep: true })
 
 watch(selection, (selection) => {
   if (selection.location && map.value) {

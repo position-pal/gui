@@ -1,6 +1,6 @@
 <template>
   <div class="users-list">
-    <h2>Users</h2>
+    <h2>My group members</h2>
     <div v-if="isLoading">
       Loading...
     </div>
