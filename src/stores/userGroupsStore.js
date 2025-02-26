@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useLocationStore } from '@/stores/locationStore.js'
 import { getLoggedInUser, getToken } from '@/scripts/user.js'
 import router from '@/router/index.js'
+import axios from 'axios'
 
 export const useUserGroupsStore = defineStore('userGroups', () => {
   const locationStore = useLocationStore()
@@ -79,8 +80,9 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
     isLoading.value = true
     error.value = null
     try {
-      // TODO: @valerio please take care of this
-      // const response = await axios.get('api/user/groups')
+      const user = getLoggedInUser()
+      const response2 = await axios.get('/api/groups/'+user.id)
+      console.log(">> Response2:", response2)
       const response = {
         data: [
           {
