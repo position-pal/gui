@@ -17,13 +17,15 @@
           <small class="text-muted">{{ group.members }} members</small>
         </div>
         <div class="d-flex gap-2">
+          <!-- Pulsante per la localizzazione -->
           <router-link
             class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
             style="width: 40px; height: 40px"
             to="/map"
           >
-            <i class="bi bi-pin-map"></i>
+            <i class="bi bi-pin-map" />
           </router-link>
+          <!-- Pulsante per la chat -->
           <router-link
             class="btn btn-success rounded-circle d-flex align-items-center justify-content-center"
             style="width: 40px; height: 40px"
@@ -74,4 +76,4 @@ export default {
 }
 </script>
 
-<style scoped> </style>
+<style scoped></style>

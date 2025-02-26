@@ -1,37 +1,66 @@
 <template>
   <nav>
     <!-- Link normali -->
-    <router-link class="active tabbar-element" to="/">
-      <h3 class="bi bi-house"></h3>
+    <router-link
+      class="active tabbar-element"
+      to="/"
+    >
+      <h3 class="bi bi-house" />
       <span> Home </span>
     </router-link>
 
-    <router-link class="tabbar-element" to="/groups">
-      <h3 class="bi bi-people"></h3>
+    <router-link
+      class="tabbar-element"
+      to="/groups"
+    >
+      <h3 class="bi bi-people" />
       <span> Groups </span>
     </router-link>
 
-    <router-link class="tabbar-element" to="/profile">
-      <h3 class="bi bi-person"></h3>
+    <router-link
+      class="tabbar-element"
+      to="/profile"
+    >
+      <h3 class="bi bi-person" />
       <span> Profile </span>
     </router-link>
 
     <!-- Container SOS: qui includiamo sia l'icona che il popup -->
-    <div ref="sosContainer" class="sos-container">
-      <a class="tabbar-element sos" @click.stop.prevent="togglePopup">
-        <h3 class="bi bi-megaphone"></h3>
+    <div
+      ref="sosContainer"
+      class="sos-container"
+    >
+      <a
+        class="tabbar-element sos"
+        @click.stop.prevent="togglePopup"
+      >
+        <h3 class="bi bi-megaphone" />
         <span> SOS </span>
       </a>
       <!-- Il popup compare solo se showPopup è true -->
       <transition name="popup">
-        <div v-if="showPopup" class="sos-popup" @click.stop>
+        <div
+          v-if="showPopup"
+          class="sos-popup"
+          @click.stop
+        >
           <p>
-            You pressed the SOS button. <br />
+            You pressed the SOS button. <br>
             Confirm that you want to send an SOS message to your groups?
           </p>
           <div class="popup-buttons">
-            <button class="cancel" @click="hidePopup">Cancel</button>
-            <button class="confirm" @click="confirmSos">Confirm</button>
+            <button
+              class="cancel"
+              @click="hidePopup"
+            >
+              Cancel
+            </button>
+            <button
+              class="confirm"
+              @click="confirmSos"
+            >
+              Confirm
+            </button>
           </div>
         </div>
       </transition>

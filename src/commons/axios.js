@@ -12,7 +12,6 @@ export function axiosSetup() {
         config.headers.Authorization = `Bearer ${token}`
       }
       config.url = `${BACKEND_ENDPOINT}/${config.url}`
-      console.log(config)
       return config
     },
     (error) => Promise.reject(error)

@@ -1,20 +1,29 @@
 <template>
   <div class="chat-view">
     <div class="chat-header bg-primary text-white p-3">
-      <h5 class="mb-0">Chat Room</h5>
+      <h5 class="mb-0">
+        Chat Room
+      </h5>
     </div>
 
-    <div class="messages-box p-3" id="messages">
+    <div
+      id="messages"
+      class="messages-box p-3"
+    >
       <!-- Sample messages -->
       <div class="d-flex mb-4">
         <div class="message message-received rounded p-3">
-          <div class="fw-bold mb-1">John Doe</div>
+          <div class="fw-bold mb-1">
+            John Doe
+          </div>
           Hello! How are you today?
         </div>
       </div>
       <div class="d-flex justify-content-end mb-4">
         <div class="message message-sent rounded p-3">
-          <div class="fw-bold mb-1">You</div>
+          <div class="fw-bold mb-1">
+            You
+          </div>
           I'm doing great, thanks for asking!
         </div>
       </div>
@@ -22,8 +31,17 @@
 
     <div class="chat-input border-top p-3">
       <form class="input-group">
-        <input type="text" class="form-control" placeholder="Type your message..." />
-        <button class="btn btn-primary" type="submit">Send</button>
+        <input
+          type="text"
+          class="form-control"
+          placeholder="Type your message..."
+        >
+        <button
+          class="btn btn-primary"
+          type="submit"
+        >
+          Send
+        </button>
       </form>
     </div>
   </div>
