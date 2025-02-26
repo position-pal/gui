@@ -17,7 +17,6 @@
           <small class="text-muted">{{ group.members }} members</small>
         </div>
         <div class="d-flex gap-2">
-          <!-- Pulsante per la localizzazione -->
           <router-link
             class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
             style="width: 40px; height: 40px"
@@ -25,13 +24,19 @@
           >
             <i class="bi bi-pin-map"></i>
           </router-link>
-          <!-- Pulsante per la chat -->
           <router-link
             class="btn btn-success rounded-circle d-flex align-items-center justify-content-center"
             style="width: 40px; height: 40px"
             to="/chat"
           >
             <i class="bi bi-chat"></i>
+          </router-link>
+          <router-link
+            class="btn btn-info rounded-circle d-flex align-items-center justify-content-center"
+            style="width: 40px; height: 40px"
+            :to="`/groups/${group.id}`"
+          >
+            <i class="bi bi-three-dots"></i>
           </router-link>
         </div>
       </li>
@@ -65,18 +70,6 @@ export default {
         { id: 2, name: 'Placeholder Group', members: 9 },
       ],
     }
-  },
-  methods: {
-    goToLocation(group) {
-      // Logica per la localizzazione
-      console.log('Vai alla localizzazione di', group.name)
-      // Esegui l'azione desiderata, ad es. un redirect o l'apertura di una mappa
-    },
-    openChat(group) {
-      // Logica per la chat
-      console.log('Apri la chat per', group.name)
-      // Esegui l'azione desiderata, ad es. apri una finestra di chat o esegui un redirect
-    },
   },
 }
 </script>
