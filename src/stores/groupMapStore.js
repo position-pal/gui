@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import axios from 'axios'
 
 export const useGroupMapStore = defineStore('groupMap', () => {
@@ -11,34 +11,31 @@ export const useGroupMapStore = defineStore('groupMap', () => {
   const error = ref(null)
 
   const usersInfo = computed(() => {
-    return users.value.map(user => {
+    return users.value.map((user) => {
       const userInfo = sessions.value[user.id]
-      const info = {
+      return {
         id: user.id,
         name: `${user.name} ${user.surname}`,
-        email: user.email,
-        state: userInfo?.state || "INACTIVE",
+        state: userInfo?.state || 'INACTIVE',
         lastSeen: userInfo?.lastSeen,
         location: userInfo?.location,
         tracking: userInfo?.tracking,
       }
-      console.log(info);
-      return info;
     })
   })
 
   watch(groupId, async (newId) => {
     if (newId) {
-      isLoading.value = true;
+      isLoading.value = true
       try {
-        await Promise.all([fetchGroupUsers(), fetchGroupSessions()]);
+        await Promise.all([fetchGroupUsers(), fetchGroupSessions()])
       } catch (e) {
-        handleError(e, 'loading group data');
+        handleError(e, 'loading group data')
       } finally {
-        isLoading.value = false;
+        isLoading.value = false
       }
     } else {
-      resetStore();
+      resetStore()
     }
   })
 
@@ -48,36 +45,33 @@ export const useGroupMapStore = defineStore('groupMap', () => {
   }
 
   async function fetchGroupUsers() {
-    if (!groupId.value) return;
-    isLoading.value = true;
+    if (!groupId.value) return
+    isLoading.value = true
     try {
-      const response = await axios.get(`api/groups/${groupId.value}`);
-      console.log(response);
-      users.value = response.data.data.members;
-      console.log(users.value);
+      const response = await axios.get(`api/groups/${groupId.value}`)
+      users.value = response.data.data.members
     } catch (e) {
-      handleError(e, 'fetch group users');
+      handleError(e, 'fetch group users')
     } finally {
-      isLoading.value = false;
+      isLoading.value = false
     }
   }
 
   async function fetchGroupSessions() {
-    if (!groupId.value) return;
+    if (!groupId.value) return
     try {
-      const res = await axios.get(`api/session/session/${groupId.value}`);
-      const sessionsList = res.data.data.sessions;
-      console.log("Session data", sessionsList);
+      const res = await axios.get(`api/session/session/${groupId.value}`)
+      const sessionsList = res.data.data.sessions
       sessions.value = sessionsList.reduce((acc, session) => {
         const userId = session.scope?.user?.value
         if (!userId) return acc
         acc[userId] = {
           lastSeen: new Date(
-            parseInt(session.lastSampledLocation.timestamp.seconds) * 1_000
+            parseInt(session.lastSampledLocation.timestamp.seconds) * 1_000,
           ).toLocaleString(),
           location: {
             latitude: session.lastSampledLocation.location.latitude,
-            longitude: session.lastSampledLocation.location.longitude
+            longitude: session.lastSampledLocation.location.longitude,
           },
           state: session.state,
           tracking: session.tracking,
@@ -90,11 +84,12 @@ export const useGroupMapStore = defineStore('groupMap', () => {
   }
 
   function updateUserSession(userId, sessionData) {
-    if (!sessions.value[userId]) return;
     sessions.value[userId] = {
+      id: userId,
+      name: users.value.find((user) => user.id === userId).name,
       ...sessions.value[userId],
       ...sessionData,
-      lastSeen: new Date().toLocaleString()
+      lastSeen: new Date().toLocaleString(),
     }
   }
 
@@ -103,7 +98,7 @@ export const useGroupMapStore = defineStore('groupMap', () => {
     if (userSession?.location) {
       selection.value = {
         userId,
-        location: userSession.location
+        location: userSession.location,
       }
       return true
     }

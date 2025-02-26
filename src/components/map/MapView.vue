@@ -1,7 +1,10 @@
 <template>
   <div>
-    <div id="map"></div>
-    <div v-if="isLoading" class="loading-overlay">
+    <div id="map" />
+    <div
+      v-if="isLoading"
+      class="loading-overlay"
+    >
       <span>Loading map data...</span>
     </div>
   </div>
@@ -27,9 +30,7 @@ onMounted(() => {
   updateMarkers()
 });
 
-watch(() => groupStore.usersInfo, () => {
-  updateMarkers()
-}, { deep: true })
+watch(() => groupStore.usersInfo, updateMarkers, { deep: true })
 
 watch(selection, (selection) => {
   if (selection.location && map.value) {

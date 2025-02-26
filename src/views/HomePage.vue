@@ -7,9 +7,11 @@
           alt="Position Pal Logo"
           class="img-fluid"
           style="background: none; width: 27vh; height: auto"
-        />
+        >
       </div>
-      <h1 class="pb-4 display-1">Position Pal</h1>
+      <h1 class="pb-4 display-1">
+        Position Pal
+      </h1>
       <h5>Share your location</h5>
       <h5>Chat with friends</h5>
       <h5>Feel safe</h5>
@@ -24,7 +26,7 @@
       </template>
       <template v-else>
         <h5>Welcome back!</h5>
-        <h5>{{this.firstName}} {{this.lastName}}</h5>
+        <h5>{{ firstName }} {{ lastName }}</h5>
         <router-link
           to="/groups"
           class="btn btn-lg primary-bg text-white mt-5"

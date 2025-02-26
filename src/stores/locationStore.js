@@ -5,16 +5,51 @@ import * as turf from '@turf/turf'
 export const useLocationStore = defineStore('location', () => {
   const currentPosition = ref(null)
   const watchId = ref(null)
-  const error = ref(null)
   const isTracking = ref(false)
+  const updateInterval = ref(null)
+  const listeners = ref([])
+  const error = ref(null)
+
+  const DEFAULT_UPDATE_INTERVAL = 10000 // 10 secs
+  const MIN_UPDATE_INTERVAL = 1000 // 1 sec
+  const DEFAULT_DISTANCE_FILTER = 0 // 1 meter
 
   const hasLocation = computed(() => !!currentPosition.value)
 
   const updatePosition = (position) => {
-    currentPosition.value = {
-      latitude: position.coords.latitude,
-      longitude: position.coords.longitude,
-      timestamp: position.timestamp
+    console.debug("[Location] Updating position to: ", position)
+    const newPosition = {
+      coordinates: {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      },
+      timestamp: new Date().toISOString()
+    }
+    currentPosition.value = newPosition
+    notifyListeners(newPosition)
+  }
+
+  const notifyListeners = (position) => {
+    listeners.value.forEach(listener => {
+      try {
+        listener(position)
+      } catch (err) {
+        console.error('Error notifying listener:', err)
+      }
+    })
+  }
+
+  const addLocationListener = (callback) => {
+    listeners.value.push(callback)
+    if (currentPosition.value) {
+      callback(currentPosition.value)
+    }
+    // cleanup function
+    return () => {
+      const index = listeners.value.indexOf(callback)
+      if (index > -1) {
+        listeners.value.splice(index, 1)
+      }
     }
   }
 
@@ -23,21 +58,50 @@ export const useLocationStore = defineStore('location', () => {
     isTracking.value = false
   }
 
-  const startTracking = async () => {
-    if (!navigator.geolocation) {
+  const startTracking = (options = {}) => {
+    if (watchId.value) {
+      console.log('[Location] Already tracking')
+      return
+    } else if (!navigator.geolocation) {
+      console.error("Geolocation is not supported by your browser")
       error.value = "Geolocation is not supported by your browser"
       return
     }
+    const {
+      updateInterval: intervalTime = DEFAULT_UPDATE_INTERVAL,
+      distanceFilter = DEFAULT_DISTANCE_FILTER,
+      enableHighAccuracy = true,
+      timeout = 8_000
+    } = options
+    console.log("[Location] Start tracking with options: ", options)
     isTracking.value = true
     watchId.value = navigator.geolocation.watchPosition(
       updatePosition,
       handleError,
       {
-        enableHighAccuracy: true,
-        timeout: 5000, // 5 seconds timeout for the request
-        distanceFilter: 1 // Update only if the position changes by 1 meter
+        enableHighAccuracy,
+        timeout,
+        distanceFilter
       }
     )
+    startUpdateInterval(intervalTime)
+  }
+
+  const startUpdateInterval = (interval = DEFAULT_UPDATE_INTERVAL) => {
+    stopUpdateInterval()
+    const safeInterval = Math.max(interval, MIN_UPDATE_INTERVAL)
+    updateInterval.value = setInterval(() => {
+      if (currentPosition.value) {
+        notifyListeners(currentPosition.value)
+      }
+    }, safeInterval)
+  }
+
+  const stopUpdateInterval = () => {
+    if (updateInterval.value) {
+      clearInterval(updateInterval.value)
+      updateInterval.value = null
+    }
   }
 
   const stopTracking = () => {
@@ -45,13 +109,27 @@ export const useLocationStore = defineStore('location', () => {
       navigator.geolocation.clearWatch(watchId.value)
       watchId.value = null
     }
+    if (updateInterval.value) {
+      clearInterval(updateInterval.value)
+      updateInterval.value = null
+    }
     isTracking.value = false
   }
 
   const calculateDistance = (targetCoords) => {
     if (!currentPosition.value || !targetCoords.longitude || !targetCoords.latitude) return null
-    const from = turf.point([currentPosition.value.longitude, currentPosition.value.latitude])
-    const to = turf.point([targetCoords.longitude, targetCoords.latitude])
+    const from = turf.point(
+      [
+        currentPosition.value.coordinates.longitude,
+        currentPosition.value.coordinates.latitude,
+      ]
+    )
+    const to = turf.point(
+      [
+        targetCoords.longitude,
+        targetCoords.latitude,
+      ]
+    )
     return turf.distance(from, to, { units: 'kilometers' })
   }
 
@@ -62,6 +140,7 @@ export const useLocationStore = defineStore('location', () => {
     hasLocation,
     startTracking,
     stopTracking,
-    calculateDistance
+    calculateDistance,
+    addLocationListener
   }
 })
