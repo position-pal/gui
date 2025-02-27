@@ -74,7 +74,10 @@ export const useGroupMapStore = defineStore('groupMap', () => {
             longitude: session.lastSampledLocation.location.longitude,
           },
           state: session.state,
-          tracking: session.tracking,
+          tracking: session.activeTracking?.route?.locations?.map(loc => ({
+            location: loc.location,
+            timestamp: new Date(parseInt(loc.timestamp.seconds) * 1_000).toLocaleString()
+          })),
         }
         return acc
       }, {})

@@ -32,15 +32,51 @@ onMounted(() => {
 
 watch(() => groupStore.usersInfo, updateMarkers, { deep: true })
 
-watch(selection, (selection) => {
-  if (selection.location && map.value) {
-    map.value.setView(
-      [selection.location.latitude, selection.location.longitude],
-      20, // zoom level
-      { animate: false }
-    )
+watch(selection, (newSelection) => {
+  if (map.value && map.value.getPane) {
+    // Remove any existing route layers
+    map.value.eachLayer(layer => {
+      if (layer instanceof L.Polyline && layer.options.className === 'user-route') {
+        map.value.removeLayer(layer);
+      }
+    });
+  }
+  if (newSelection && newSelection.userId) {
+    const selectedUser = groupStore.usersInfo.find(u => u.id === newSelection.userId);
+    if (selectedUser && selectedUser.tracking && selectedUser.tracking.length > 1) {
+      const coordinates = selectedUser.tracking.map(p => [p.location.latitude, p.location.longitude]);
+      const routeLine = L.polyline(coordinates, {
+        color: '#3388ff',
+        weight: 4,
+        opacity: 0.7,
+        className: 'user-route'
+      }).addTo(map.value);
+      coordinates.forEach((coord, index) => {
+        const timestamp = selectedUser.tracking[index].timestamp;
+        L.circleMarker(coord, {
+          radius: 8,
+          fillColor: '#FF0000',
+          color: '#fff',
+          weight: 2,
+          opacity: 1,
+          fillOpacity: 0.9,
+          className: 'route-point'
+        }).bindTooltip(timestamp, { permanent: false, direction: 'top' }).addTo(map.value);
+      });
+      // Center the map on the route
+      map.value.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
+    } else if (newSelection.location) {
+      // If there's no tracking data but there's a current position
+      map.value.setView(
+        [newSelection.location.latitude, newSelection.location.longitude],
+        16,
+        { animate: true }
+      );
+    }
   }
 })
+
+
 
 function updateMarkers() {
   const users = groupStore.usersInfo
