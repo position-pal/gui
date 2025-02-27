@@ -10,8 +10,8 @@ export const useLocationStore = defineStore('location', () => {
   const listeners = ref([])
   const error = ref(null)
 
-  const DEFAULT_UPDATE_INTERVAL = 10000 // 10 secs
-  const MIN_UPDATE_INTERVAL = 1000 // 1 sec
+  const DEFAULT_UPDATE_INTERVAL = 10_000 // 10 secs
+  const MIN_UPDATE_INTERVAL = 1_000 // 1 sec
   const DEFAULT_DISTANCE_FILTER = 0 // 1 meter
 
   const hasLocation = computed(() => !!currentPosition.value)
