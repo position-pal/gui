@@ -121,15 +121,13 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
       return
     }
     console.debug("Stopping SOS broadcast")
-    sosActive.value = false
-    pendingSosGroups.value = []
     // Send final message to notify all groups that SOS is no longer active
     groups.value.forEach(group => {
       if (websockets[group.id]?.isConnected) {
         const ws = websockets[group.id].connection
         const message = {
           SOSAlertStopped: {
-            timestamp: Date.now(),
+            timestamp: new Date().toISOString(),
             user: getLoggedInUser().id,
             group: group.id,
           }
@@ -138,6 +136,8 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
         ws.send(JSON.stringify(message))
       }
     })
+    sosActive.value = false
+    pendingSosGroups.value = []
     // We don't disable tracking automatically - leave that to user preference
   }
 
