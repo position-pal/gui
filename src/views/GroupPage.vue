@@ -1,10 +1,26 @@
 <template>
   <div class="h-100 group-container p-1">
-    <h1 class="mt-3 p-1">
-      Groups
-    </h1>
-    <!-- Container scrollabile -->
-    <ul class="list-group overflow-auto">
+    <div
+      class="position-fixed fixed-top d-flex justify-content-between align-items-center"
+      style="background-color: white"
+    >
+      <h1
+        class="mt-3 p-1"
+        style="margin-left: 3%"
+      >
+        Groups
+      </h1>
+      <button
+        class="btn btn-primary rounded-circle mr-1 align-items-center"
+        style="width: 40px; height: 40px; margin-right: 6%; margin-top: 3%"
+      >
+        <i class="bi bi-plus" />
+      </button>
+    </div>
+    <ul
+      class="list-group overflow-auto"
+      style="margin-top: 10vh"
+    >
       <li
         v-for="group in groups"
         :key="group.id"
@@ -33,6 +49,13 @@
           >
             <i class="bi bi-chat" />
           </router-link>
+          <router-link
+            class="btn btn-info rounded-circle d-flex align-items-center justify-content-center"
+            style="width: 40px; height: 40px"
+            :to="`/groups/${group.id}`"
+          >
+            <i class="bi bi-three-dots" />
+          </router-link>
         </div>
       </li>
     </ul>
@@ -54,20 +77,17 @@ export default {
         { id: 1, name: 'Astro', members: 10 },
         { id: 2, name: 'Star Wars Fans', members: 15 },
         { id: 2, name: 'Placeholder Group', members: 9 },
+        { id: 1, name: 'Astro', members: 10 },
+        { id: 2, name: 'Star Wars Fans', members: 15 },
+        { id: 2, name: 'Placeholder Group', members: 9 },
+        { id: 1, name: 'Astro', members: 10 },
+        { id: 2, name: 'Star Wars Fans', members: 15 },
+        { id: 2, name: 'Placeholder Group', members: 9 },
+        { id: 1, name: 'Astro', members: 10 },
+        { id: 2, name: 'Star Wars Fans', members: 15 },
+        { id: 2, name: 'Placeholder Group', members: 9 },
       ],
     }
-  },
-  methods: {
-    goToLocation(group) {
-      // Logica per la localizzazione
-      console.log('Vai alla localizzazione di', group.name)
-      // Esegui l'azione desiderata, ad es. un redirect o l'apertura di una mappa
-    },
-    openChat(group) {
-      // Logica per la chat
-      console.log('Apri la chat per', group.name)
-      // Esegui l'azione desiderata, ad es. apri una finestra di chat o esegui un redirect
-    },
   },
 }
 </script>
