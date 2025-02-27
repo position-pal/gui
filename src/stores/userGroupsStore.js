@@ -81,19 +81,7 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
     error.value = null
     try {
       const user = getLoggedInUser()
-      const response2 = await axios.get('/api/groups/'+user.id)
-      console.log(">> Response2:", response2)
-      const response = {
-        data: [
-          {
-            id: "a4b1093a-43b9-4a7b-88bc-8f84fcb967e0",
-            name: "Pimpa",
-            // + other info I don't care
-          }
-        ]
-      }
-      console.log(">> Response:")
-      console.log(response)
+      const response = await axios.get('api/groups/user/'+user.id)
       const trackingState = JSON.parse(localStorage.getItem('trackingState')) || {}
       groups.value = response.data.map(group => ({
         ...group,

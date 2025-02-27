@@ -2,8 +2,11 @@
   <div class="update-group-container">
     <div class="row justify-content-center w-100">
       <div class="col-12 col-md-8 col-lg-6">
-        <button @click="goBack" class="btn btn-light back-button rounded-circle">
-          <i class="bi bi-arrow-left"></i>
+        <button
+          class="btn btn-light back-button rounded-circle"
+          @click="goBack"
+        >
+          <i class="bi bi-arrow-left" />
         </button>
         <div class="card update-group-card mt-2">
           <div class="card-body text-center">
@@ -13,8 +16,13 @@
                 type="text"
                 class="form-control"
                 placeholder="Group Name"
-              />
-              <button @click="updateGroupName" class="btn btn-primary">Save</button>
+              >
+              <button
+                class="btn btn-primary"
+                @click="updateGroupName"
+              >
+                Save
+              </button>
             </div>
             <ul class="list-group mt-3">
               <li
@@ -23,8 +31,11 @@
                 class="list-group-item d-flex justify-content-between align-items-center"
               >
                 {{ member }}
-                <button @click="removeMember(index)" class="btn btn-danger btn-sm rounded-circle">
-                  <i class="bi bi-person-dash"></i>
+                <button
+                  class="btn btn-danger btn-sm rounded-circle"
+                  @click="removeMember(index)"
+                >
+                  <i class="bi bi-person-dash" />
                 </button>
               </li>
             </ul>
@@ -34,9 +45,12 @@
                 type="text"
                 class="form-control"
                 placeholder="Add new member"
-              />
-              <button @click="addMember" class="btn btn-success">
-                <i class="bi bi-person-add"></i>
+              >
+              <button
+                class="btn btn-success"
+                @click="addMember"
+              >
+                <i class="bi bi-person-add" />
               </button>
             </div>
           </div>
@@ -44,7 +58,7 @@
       </div>
     </div>
   </div>
-  <GradientBackground/>
+  <GradientBackground />
 </template>
 
 <script>
