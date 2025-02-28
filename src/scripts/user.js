@@ -8,6 +8,10 @@ function isUserLoggedIn() {
   return getToken() !== null
 }
 
+function isTestUser() {
+  return getLoggedInUser().name === 'Test'
+}
+
 function logout() {
   sessionStorage.removeItem('authToken')
   sessionStorage.removeItem('userData')
@@ -81,7 +85,6 @@ async function updatePassword(password) {
     user: { password: password },
   });
   return response.data.code === 200;
-
 }
 
 export {
@@ -95,4 +98,5 @@ export {
   getLoggedInUser,
   updateUser,
   updatePassword,
+  isTestUser,
 };

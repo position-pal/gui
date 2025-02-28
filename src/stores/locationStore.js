@@ -1,6 +1,8 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import * as turf from '@turf/turf'
+import { isTestUser } from '@/scripts/user.js'
+import { getMockedPosition } from '@/scripts/mocked-location.js'
 
 export const useLocationStore = defineStore('location', () => {
   const currentPosition = ref(null)
@@ -32,7 +34,17 @@ export const useLocationStore = defineStore('location', () => {
   const notifyListeners = (position) => {
     listeners.value.forEach(listener => {
       try {
-        listener(position)
+        /*
+         * Just for the sake of testing and demoing the app, we add a random offset to the
+         * position of the test user. This way, we can simulate the movement of the test user
+         * on the map without actually moving. This is not a real-world use case and should
+         * be removed in a production app, it's simply the easiest way! Hurrah for the test user!
+         */
+        if (isTestUser()) {
+          listener(getMockedPosition())
+        } else {
+          listener(position)
+        }
       } catch (err) {
         console.error('Error notifying listener:', err)
       }

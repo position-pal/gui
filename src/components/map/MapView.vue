@@ -46,7 +46,7 @@ watch(selection, (newSelection) => {
     if (selectedUser && selectedUser.tracking && selectedUser.tracking.length > 1) {
       const coordinates = selectedUser.tracking.map(p => [p.location.latitude, p.location.longitude]);
       const routeLine = L.polyline(coordinates, {
-        color: '#3388ff',
+        color: '#1a7fab',
         weight: 4,
         opacity: 0.7,
         className: 'user-route'
@@ -55,7 +55,7 @@ watch(selection, (newSelection) => {
         const timestamp = selectedUser.tracking[index].timestamp;
         L.circleMarker(coord, {
           radius: 8,
-          fillColor: '#FF0000',
+          fillColor: '#f31f77',
           color: '#fff',
           weight: 2,
           opacity: 1,
