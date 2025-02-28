@@ -46,7 +46,7 @@
                 {{ member.name + " " + member.surname + "\n" + member.email }}
                 <button
                   class="btn btn-danger btn-sm rounded-circle"
-                  @click="removeMember(member.id)"
+                  @click="removeMemberByMemberID(member.id)"
                 >
                   <i class="bi bi-person-dash" />
                 </button>
@@ -61,7 +61,7 @@
               >
               <button
                 class="btn btn-success"
-                @click="addMember"
+                @click="addMemberByMemberEmail"
               >
                 <i class="bi bi-person-add" />
               </button>
@@ -80,7 +80,8 @@ import { useRoute, useRouter } from 'vue-router'
 import GradientBackground from '@/components/GradientBackground.vue'
 import { useUserGroupsStore } from '@/stores/userGroupsStore.js'
 import { storeToRefs } from 'pinia'
-import { updateGroup } from '@/scripts/group.js'
+import { updateGroup, addMember, removeMember } from '@/scripts/group.js'
+import { getUserByEmail } from '@/scripts/user.js'
 
 const groupStore = useUserGroupsStore();
 const { groups } = storeToRefs(groupStore)
@@ -127,23 +128,22 @@ async function updateGroupName() {
   alert("Error Updating Group")
 }
 
-function removeMember(id) {
-  // Trova l'indice del membro da rimuovere in base all'id
-  const index = members.value.findIndex(member => member.id === id)
-  if(index !== -1){
-    members.value.splice(index, 1)
-    console.log('Member removed with id:', id)
+async function removeMemberByMemberID(memberId) {
+  const memberIndex = members.value.findIndex(member => member.id === memberId);
+  if (memberIndex !== -1) {
+    if(await removeMember(groupId, members.value[memberIndex])){
+      members.value.splice(memberIndex, 1);
+    }
   }
 }
 
-function addMember() {
+async function addMemberByMemberEmail() {
   const member = newMember.value.trim()
   if (member !== '') {
-    // In questo esempio, aggiungiamo il membro come stringa,
-    // ma potresti voler gestire un oggetto con name, surname ed email
-    members.value.push({ name: member, surname: '', email: '' })
-    console.log('New member added:', member)
-    newMember.value = ''
+    const user = await getUserByEmail(member)
+    if(await addMember(groupId, user)){
+      members.value.push(user)
+    }
   }
 }
 </script>
