@@ -30,22 +30,20 @@
           <h5 class="mb-1">
             {{ group.name }}
           </h5>
-          <small class="text-muted">{{ group.members }} members</small>
+          <small class="text-muted">{{ group.members.length }} members</small>
         </div>
         <div class="d-flex gap-2">
-          <!-- Pulsante per la localizzazione -->
           <router-link
             class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
             style="width: 40px; height: 40px"
-            to="/map"
+            :to="`/map/${group.id}`"
           >
             <i class="bi bi-pin-map" />
           </router-link>
-          <!-- Pulsante per la chat -->
           <router-link
             class="btn btn-success rounded-circle d-flex align-items-center justify-content-center"
             style="width: 40px; height: 40px"
-            to="/chat"
+            :to="`/chat/${group.id}`"
           >
             <i class="bi bi-chat" />
           </router-link>
@@ -62,34 +60,17 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'GroupPage',
-  data() {
-    return {
-      groups: [
-        { id: 1, name: 'Astro', members: 10 },
-        { id: 2, name: 'Star Wars Fans', members: 15 },
-        { id: 2, name: 'Placeholder Group', members: 9 },
-        { id: 1, name: 'Astro', members: 10 },
-        { id: 2, name: 'Star Wars Fans', members: 15 },
-        { id: 2, name: 'Placeholder Group', members: 9 },
-        { id: 1, name: 'Astro', members: 10 },
-        { id: 2, name: 'Star Wars Fans', members: 15 },
-        { id: 2, name: 'Placeholder Group', members: 9 },
-        { id: 1, name: 'Astro', members: 10 },
-        { id: 2, name: 'Star Wars Fans', members: 15 },
-        { id: 2, name: 'Placeholder Group', members: 9 },
-        { id: 1, name: 'Astro', members: 10 },
-        { id: 2, name: 'Star Wars Fans', members: 15 },
-        { id: 2, name: 'Placeholder Group', members: 9 },
-        { id: 1, name: 'Astro', members: 10 },
-        { id: 2, name: 'Star Wars Fans', members: 15 },
-        { id: 2, name: 'Placeholder Group', members: 9 },
-      ],
-    }
-  },
-}
+<script setup>
+import { useUserGroupsStore } from '@/stores/userGroupsStore.js';
+import { storeToRefs } from 'pinia'
+import { onMounted } from 'vue'
+const groupStore = useUserGroupsStore();
+const { groups } = storeToRefs(groupStore)
+
+onMounted(async () => {
+  console.log('Mounted GroupPage');
+  await groupStore.fetchUserGroups();
+})
 </script>
 
 <style scoped></style>
