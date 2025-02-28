@@ -13,76 +13,76 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue'
 import { useGroupMapStore } from '@/stores/groupMapStore.js'
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 import { storeToRefs } from 'pinia'
 
 const groupStore = useGroupMapStore()
-const { selection } = storeToRefs(groupStore)
+const { selection, usersInfo } = storeToRefs(groupStore)
 const map = ref(null)
 const markers = ref({})
+const routes = ref({})
+const isLoading = ref(false)
 
 onMounted(() => {
-  map.value = L.map("map").setView([0, 0], 2); // Start with world view
+  map.value = L.map("map").setView([0, 0], 2)
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "© OpenStreetMap contributors",
-  }).addTo(map.value);
+  }).addTo(map.value)
   updateMarkers()
-});
+})
 
-watch(() => groupStore.usersInfo, updateMarkers, { deep: true })
+// Aggiorna marker e percorso ad ogni modifica dei dati
+watch(usersInfo, updateMarkers, { deep: true })
 
+// Quando viene aggiornata la selezione, centra la mappa sulla posizione dell'utente selezionato
 watch(selection, (newSelection) => {
-  if (map.value && map.value.getPane) {
-    // Remove any existing route layers
-    map.value.eachLayer(layer => {
-      if (layer instanceof L.Polyline && layer.options.className === 'user-route') {
-        map.value.removeLayer(layer);
+  if (newSelection) {
+    if(newSelection.userId) {
+      const selectedUser = usersInfo.value.find(u => u.id === newSelection.userId)
+      if (selectedUser && selectedUser.location && selectedUser.location.latitude && selectedUser.location.longitude) {
+        if(selectedUser.tracking && selectedUser.tracking.length > 1) {
+          const coordinates = selectedUser.tracking.map(p => [p.location.latitude, p.location.longitude])
+          const polyline = L.polyline(coordinates)
+          map.value.fitBounds(polyline.getBounds(), { padding: [50, 50] })
+        } else {
+          map.value.setView(
+            [selectedUser.location.latitude, selectedUser.location.longitude],
+            16,
+            { animate: true }
+          )
+        }
       }
-    });
-  }
-  if (newSelection && newSelection.userId) {
-    const selectedUser = groupStore.usersInfo.find(u => u.id === newSelection.userId);
-    if (selectedUser && selectedUser.tracking && selectedUser.tracking.length > 1) {
-      const coordinates = selectedUser.tracking.map(p => [p.location.latitude, p.location.longitude]);
-      const routeLine = L.polyline(coordinates, {
-        color: '#1a7fab',
-        weight: 4,
-        opacity: 0.7,
-        className: 'user-route'
-      }).addTo(map.value);
-      coordinates.forEach((coord, index) => {
-        const timestamp = selectedUser.tracking[index].timestamp;
-        L.circleMarker(coord, {
-          radius: 8,
-          fillColor: '#f31f77',
-          color: '#fff',
-          weight: 2,
-          opacity: 1,
-          fillOpacity: 0.9,
-          className: 'route-point'
-        }).bindTooltip(timestamp, { permanent: false, direction: 'top' }).addTo(map.value);
-      });
-      // Center the map on the route
-      map.value.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
     } else if (newSelection.location) {
-      // If there's no tracking data but there's a current position
       map.value.setView(
         [newSelection.location.latitude, newSelection.location.longitude],
         16,
         { animate: true }
-      );
+      )
     }
   }
 })
 
 function updateMarkers() {
-  const users = groupStore.usersInfo
+  // Rimuove tutti i circle marker dei punti di tracking dalla mappa
+  map.value.eachLayer(layer => {
+    if (layer.options && layer.options.className === 'route-point') {
+      map.value.removeLayer(layer)
+    }
+  })
+
+  // Rimuove le vecchie linee dei percorsi
+  Object.values(routes.value).forEach(route => {
+    map.value.removeLayer(route)
+  })
+  routes.value = {}
+
+  const users = usersInfo.value
   users.forEach(user => {
     const location = user.location
-    if (!location || !location.latitude || !location.longitude) {
-      return
-    }
+    if (!location || !location.latitude || !location.longitude) return
+
+    // Aggiorna o crea il marker utente
     if (markers.value[user.id]) {
       markers.value[user.id].setLatLng([location.latitude, location.longitude])
       markers.value[user.id].setPopupContent(createPopupContent(user))
@@ -91,18 +91,56 @@ function updateMarkers() {
         .bindPopup(createPopupContent(user))
         .addTo(map.value)
     }
+
+    // Disegna il percorso solo per l'utente selezionato
+    if (
+      selection.value &&
+      selection.value.userId === user.id &&
+      user.tracking &&
+      user.tracking.length > 1
+    ) {
+      const coordinates = user.tracking.map(p => [p.location.latitude, p.location.longitude])
+      const polyline = L.polyline(coordinates, {
+        color: '#1a7fab',
+        weight: 4,
+        opacity: 0.7,
+        className: 'user-route'
+      }).addTo(map.value)
+      routes.value[user.id] = polyline
+
+      // Aggiunge i punti del percorso con tooltip che mostrano il timestamp
+      coordinates.forEach((coord, index) => {
+        const timestamp = user.tracking[index].timestamp
+        L.circleMarker(coord, {
+          radius: 6,
+          fillColor: '#f31f77',
+          color: '#fff',
+          weight: 2,
+          opacity: 1,
+          fillOpacity: 0.9,
+          className: 'route-point'
+        })
+          .bindTooltip(timestamp, { permanent: false, direction: 'top' })
+          .addTo(map.value)
+      })
+    }
   })
-  // Remove markers for users no longer in the group
+
+  // Rimuove i marker degli utenti non più presenti
   Object.keys(markers.value).forEach(markerId => {
     if (!users.find(user => user.id === markerId)) {
       map.value.removeLayer(markers.value[markerId])
       delete markers.value[markerId]
     }
   })
-  // Fit bounds if we have markers
-  if (Object.keys(markers.value).length > 0) {
-    const markerPositions = Object.values(markers.value).map(marker => marker.getLatLng())
-    map.value.fitBounds(L.latLngBounds(markerPositions).pad(0.1))
+
+  // Se nessun utente è selezionato, centra la mappa su tutti i marker
+  if (!selection.value) {
+    const markerKeys = Object.keys(markers.value)
+    if (markerKeys.length > 0) {
+      const markerPositions = markerKeys.map(key => markers.value[key].getLatLng())
+      map.value.fitBounds(L.latLngBounds(markerPositions).pad(0.1))
+    }
   }
 }
 
@@ -111,7 +149,7 @@ function createPopupContent(user) {
     <div class="user-popup">
       <p><strong>${user.name}</strong></p>
       <p>Status: ${user.state}</p>
-      <p v-if="${user.lastSeen}">Last seen: ${user.lastSeen}</p>
+      ${user.lastSeen ? `<p>Last seen: ${user.lastSeen}</p>` : ''}
     </div>
   `
 }

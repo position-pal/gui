@@ -2,9 +2,10 @@ import { defineStore } from 'pinia'
 import { ref, computed, reactive, watch } from 'vue'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useLocationStore } from '@/stores/locationStore.js'
-import { getLoggedInUser, getToken } from '@/scripts/user.js'
+import { getLoggedInUser, getToken, isTestUser } from '@/scripts/user.js'
 import router from '@/router/index.js'
 import axios from 'axios'
+import { getMockedPosition } from '@/scripts/mocked-location.js'
 
 export const useUserGroupsStore = defineStore('userGroups', () => {
   const locationStore = useLocationStore()
@@ -97,7 +98,12 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
 
   function sendSosToGroup(groupId) {
     if (!websockets[groupId]?.isConnected) return
-    const currentPosition = locationStore.currentPosition
+    let currentPosition;
+    if (isTestUser()) {
+      currentPosition = getMockedPosition()
+    } else {
+      currentPosition = locationStore.currentPosition
+    }
     const ws = websockets[groupId].connection
     if (!currentPosition.coordinates) {
       console.error("No current position available")
