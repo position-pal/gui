@@ -76,8 +76,6 @@ watch(selection, (newSelection) => {
   }
 })
 
-
-
 function updateMarkers() {
   const users = groupStore.usersInfo
   users.forEach(user => {
