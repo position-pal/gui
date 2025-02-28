@@ -32,46 +32,18 @@ onMounted(() => {
   updateMarkers()
 })
 
-// Aggiorna marker e percorso ad ogni modifica dei dati
 watch(usersInfo, updateMarkers, { deep: true })
-
-// Quando viene aggiornata la selezione, centra la mappa sulla posizione dell'utente selezionato
-watch(selection, (newSelection) => {
-  if (newSelection) {
-    if(newSelection.userId) {
-      const selectedUser = usersInfo.value.find(u => u.id === newSelection.userId)
-      if (selectedUser && selectedUser.location && selectedUser.location.latitude && selectedUser.location.longitude) {
-        if(selectedUser.tracking && selectedUser.tracking.length > 1) {
-          const coordinates = selectedUser.tracking.map(p => [p.location.latitude, p.location.longitude])
-          const polyline = L.polyline(coordinates)
-          map.value.fitBounds(polyline.getBounds(), { padding: [50, 50] })
-        } else {
-          map.value.setView(
-            [selectedUser.location.latitude, selectedUser.location.longitude],
-            16,
-            { animate: true }
-          )
-        }
-      }
-    } else if (newSelection.location) {
-      map.value.setView(
-        [newSelection.location.latitude, newSelection.location.longitude],
-        16,
-        { animate: true }
-      )
-    }
-  }
-})
+watch(selection, updateMarkers)
 
 function updateMarkers() {
-  // Rimuove tutti i circle marker dei punti di tracking dalla mappa
+  // Remove all route point circle markers
   map.value.eachLayer(layer => {
     if (layer.options && layer.options.className === 'route-point') {
       map.value.removeLayer(layer)
     }
   })
 
-  // Rimuove le vecchie linee dei percorsi
+  // Remove old polylines
   Object.values(routes.value).forEach(route => {
     map.value.removeLayer(route)
   })
@@ -82,7 +54,6 @@ function updateMarkers() {
     const location = user.location
     if (!location || !location.latitude || !location.longitude) return
 
-    // Aggiorna o crea il marker utente
     if (markers.value[user.id]) {
       markers.value[user.id].setLatLng([location.latitude, location.longitude])
       markers.value[user.id].setPopupContent(createPopupContent(user))
@@ -92,7 +63,6 @@ function updateMarkers() {
         .addTo(map.value)
     }
 
-    // Disegna il percorso solo per l'utente selezionato
     if (
       selection.value &&
       selection.value.userId === user.id &&
@@ -108,7 +78,6 @@ function updateMarkers() {
       }).addTo(map.value)
       routes.value[user.id] = polyline
 
-      // Aggiunge i punti del percorso con tooltip che mostrano il timestamp
       coordinates.forEach((coord, index) => {
         const timestamp = user.tracking[index].timestamp
         L.circleMarker(coord, {
@@ -126,7 +95,6 @@ function updateMarkers() {
     }
   })
 
-  // Rimuove i marker degli utenti non più presenti
   Object.keys(markers.value).forEach(markerId => {
     if (!users.find(user => user.id === markerId)) {
       map.value.removeLayer(markers.value[markerId])
@@ -134,12 +102,24 @@ function updateMarkers() {
     }
   })
 
-  // Se nessun utente è selezionato, centra la mappa su tutti i marker
-  if (!selection.value) {
+  // Center map: if no selection or selection.userId is not present, center on all markers;
+  // otherwise, center on the selected user's position or tracking route.
+  if (!selection.value || !selection.value.userId) {
     const markerKeys = Object.keys(markers.value)
     if (markerKeys.length > 0) {
       const markerPositions = markerKeys.map(key => markers.value[key].getLatLng())
       map.value.fitBounds(L.latLngBounds(markerPositions).pad(0.1))
+    }
+  } else {
+    const selectedUser = users.find(u => u.id === selection.value.userId)
+    if (selectedUser) {
+      if (selectedUser.tracking && selectedUser.tracking.length > 1) {
+        const coordinates = selectedUser.tracking.map(p => [p.location.latitude, p.location.longitude])
+        const polyline = L.polyline(coordinates)
+        map.value.fitBounds(polyline.getBounds(), { padding: [50, 50] })
+      } else if (selectedUser.location && selectedUser.location.latitude && selectedUser.location.longitude) {
+        map.value.setView([selectedUser.location.latitude, selectedUser.location.longitude], 16, { animate: true })
+      }
     }
   }
 }
