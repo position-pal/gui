@@ -13,6 +13,7 @@
       <button
         class="btn btn-primary rounded-circle mr-1 align-items-center"
         style="width: 40px; height: 40px; margin-right: 6%; margin-top: 3%"
+        @click="showPopup = true"
       >
         <i class="bi bi-plus" />
       </button>
@@ -57,20 +58,85 @@
         </div>
       </li>
     </ul>
+
+    <div
+      v-if="showPopup"
+      class="popup-overlay"
+    >
+      <div class="card popup-card">
+        <div class="card-body text-center">
+          <h5 class="card-title">
+            Create new group
+          </h5>
+          <input
+            v-model="newGroupName"
+            type="text"
+            class="form-control mb-3"
+            placeholder="Group Name"
+          >
+          <div class="d-flex justify-content-between">
+            <button
+              class="btn btn-secondary"
+              @click="showPopup = false"
+            >
+              Cancel
+            </button>
+            <button
+              class="btn btn-primary"
+              @click="createGroupByName"
+            >
+              Create
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { useUserGroupsStore } from '@/stores/userGroupsStore.js';
-import { storeToRefs } from 'pinia'
-import { onMounted } from 'vue'
+import { storeToRefs } from 'pinia';
+import { ref, onMounted } from 'vue';
+import { createGroup } from '@/scripts/group.js'
+import { getLoggedInUser } from '@/scripts/user.js'
+
 const groupStore = useUserGroupsStore();
-const { groups } = storeToRefs(groupStore)
+const { groups } = storeToRefs(groupStore);
+const showPopup = ref(false);
+const newGroupName = ref('');
 
 onMounted(async () => {
-  console.log('Mounted GroupPage');
   await groupStore.fetchUserGroups();
-})
+});
+
+const createGroupByName = async () => {
+  if (newGroupName.value.trim() === '') return;
+  const myUser = getLoggedInUser();
+  await createGroup({ name: newGroupName.value, createdBy: myUser, members: [myUser] });
+  await groupStore.fetchUserGroups();
+  newGroupName.value = '';
+  showPopup.value = false;
+};
 </script>
 
-<style scoped></style>
+<style scoped>
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+.popup-card {
+  width: 90%;
+  max-width: 400px;
+  border-radius: 15px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+</style>

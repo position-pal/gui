@@ -15,9 +15,14 @@ async function removeMember(groupId, member){
   return response.data.code === 200;
 }
 
+async function createGroup(groupData) {
+  const response = await axios.post(`api/groups`, groupData);
+  return response.data.code === 200;
+}
 
 export {
   updateGroup,
   addMember,
   removeMember,
+  createGroup,
 }
