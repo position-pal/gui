@@ -1,6 +1,5 @@
 <template>
   <nav>
-    <!-- Link normali -->
     <router-link
       class="active tabbar-element"
       to="/"
@@ -8,7 +7,6 @@
       <h3 class="bi bi-house" />
       <span> Home </span>
     </router-link>
-
     <router-link
       class="tabbar-element"
       to="/groups"
@@ -16,7 +14,6 @@
       <h3 class="bi bi-people" />
       <span> Groups </span>
     </router-link>
-
     <router-link
       class="tabbar-element"
       to="/profile"
@@ -24,29 +21,31 @@
       <h3 class="bi bi-person" />
       <span> Profile </span>
     </router-link>
-
-    <!-- Container SOS: qui includiamo sia l'icona che il popup -->
     <div
       ref="sosContainer"
       class="sos-container"
     >
       <a
         class="tabbar-element sos"
+        :class="{ 'active-sos': sosActive }"
         @click.stop.prevent="togglePopup"
       >
         <h3 class="bi bi-megaphone" />
         <span> SOS </span>
       </a>
-      <!-- Il popup compare solo se showPopup è true -->
       <transition name="popup">
         <div
           v-if="showPopup"
           class="sos-popup"
           @click.stop
         >
-          <p>
+          <p v-if="!sosActive">
             You pressed the SOS button. <br>
-            Confirm that you want to send an SOS message to your groups?
+            Confirm that you want to send an SOS alert?
+          </p>
+          <p v-else>
+            Your SOS is currently active. <br>
+            Confirm that you want to deactivate it?
           </p>
           <div class="popup-buttons">
             <button
@@ -59,7 +58,7 @@
               class="confirm"
               @click="confirmSos"
             >
-              Confirm
+              {{ sosActive ? 'Deactivate' : 'Confirm' }}
             </button>
           </div>
         </div>
@@ -68,67 +67,73 @@
   </nav>
 </template>
 
-<script>
-export default {
-  name: 'BottomBar',
-  data() {
-    return {
-      showPopup: false,
-      navigationOptions: [
-        { name: 'home', color: '#5B37B7' },
-        { name: 'profile', color: '#C9379D' },
-        { name: 'groups', color: '#1AAB8A' },
-      ],
-    }
-  },
-  mounted() {
-    const links = document.querySelectorAll('.tabbar-element:not(.sos)')
-    const navigationOptions = this.navigationOptions
-    function handleClick(e) {
-      e.preventDefault()
-      links.forEach((link) => link.classList.remove('active'))
-      const name = e.currentTarget.textContent.trim().toLowerCase()
-      const option = navigationOptions.find((item) => item.name === name)
-      if (option) {
-        const { color } = option
-        const style = window.getComputedStyle(e.currentTarget)
-        const hoverColor = style.getPropertyValue('--hover-c')
-        if (color !== hoverColor) {
-          e.currentTarget.style.setProperty('--hover-bg', `${color}20`)
-          e.currentTarget.style.setProperty('--hover-c', color)
-        }
-      }
-      e.currentTarget.classList.add('active')
-    }
-    links.forEach((link) => link.addEventListener('click', handleClick))
+<script setup>
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { useUserGroupsStore } from '@/stores/userGroupsStore.js';
 
-    document.addEventListener('click', this.handleOutsideClick)
-  },
-  beforeUnmount() {
-    document.removeEventListener('click', this.handleOutsideClick)
-  },
-  methods: {
-    togglePopup() {
-      this.showPopup = !this.showPopup
-    },
-    hidePopup() {
-      this.showPopup = false
-    },
-    confirmSos() {
-      console.log('SOS inviato!')
-      this.hidePopup()
-    },
-    handleOutsideClick(e) {
-      if (
-        this.showPopup &&
-        this.$refs.sosContainer &&
-        !this.$refs.sosContainer.contains(e.target)
-      ) {
-        this.hidePopup()
-      }
-    },
-  },
-}
+const userGroupsStore = useUserGroupsStore();
+
+const showPopup = ref(false);
+const navigationOptions = ref([
+  { name: 'home', color: '#5B37B7' },
+  { name: 'profile', color: '#C9379D' },
+  { name: 'groups', color: '#1AAB8A' },
+]);
+
+const sosActive = computed(() => userGroupsStore.sosActive);
+
+const togglePopup = () => {
+  showPopup.value = !showPopup.value;
+};
+
+const hidePopup = () => {
+  showPopup.value = false;
+};
+
+const confirmSos = () => {
+  if (sosActive.value) {
+    userGroupsStore.stopSOS()
+  } else {
+    userGroupsStore.broadcastSOS()
+  }
+  hidePopup();
+};
+
+const handleOutsideClick = (e) => {
+  if (showPopup.value && sosContainerRef.value && !sosContainerRef.value.contains(e.target)) {
+    hidePopup();
+  }
+};
+
+const sosContainerRef = ref(null);
+
+const handleClick = (e) => {
+  e.preventDefault();
+  const links = document.querySelectorAll('.tabbar-element:not(.sos)');
+  links.forEach((link) => link.classList.remove('active'));
+  const name = e.currentTarget.textContent.trim().toLowerCase();
+  const option = navigationOptions.value.find((item) => item.name === name);
+  if (option) {
+    const { color } = option;
+    const style = window.getComputedStyle(e.currentTarget);
+    const hoverColor = style.getPropertyValue('--hover-c');
+    if (color !== hoverColor) {
+      e.currentTarget.style.setProperty('--hover-bg', `${color}20`);
+      e.currentTarget.style.setProperty('--hover-c', color);
+    }
+  }
+  e.currentTarget.classList.add('active');
+};
+
+onMounted(() => {
+  const links = document.querySelectorAll('.tabbar-element:not(.sos)');
+  links.forEach((link) => link.addEventListener('click', handleClick));
+  document.addEventListener('click', handleOutsideClick);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleOutsideClick);
+});
 </script>
 
 <style scoped>
