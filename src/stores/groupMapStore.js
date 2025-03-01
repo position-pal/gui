@@ -74,7 +74,10 @@ export const useGroupMapStore = defineStore('groupMap', () => {
             longitude: session.lastSampledLocation.location.longitude,
           },
           state: session.state,
-          tracking: session.tracking,
+          tracking: (session.activeTracking?.route?.locations ?? []).map(loc => ({
+            location: loc.location,
+            timestamp: new Date(parseInt(loc.timestamp.seconds) * 1_000).toLocaleString()
+          })),
         }
         return acc
       }, {})
@@ -84,13 +87,23 @@ export const useGroupMapStore = defineStore('groupMap', () => {
   }
 
   function updateUserSession(userId, sessionData) {
+    const oldSession = sessions.value[userId];
+    let trackedLocations = [];
+    if (sessionData.state === 'SOS' || sessionData.state === 'ROUTING') {
+      trackedLocations = oldSession.tracking;
+      trackedLocations.push({ location: sessionData.location, timestamp: sessionData.lastSeen });
+    }
     sessions.value[userId] = {
+      // Note: if no updates were provided the `id` and `name` are undefined and cannot
+      //       be recovered by the current `oldSession`.
       id: userId,
       name: users.value.find((user) => user.id === userId).name,
-      ...sessions.value[userId],
+      ...oldSession,
       ...sessionData,
+      tracking: trackedLocations,
       lastSeen: new Date().toLocaleString(),
-    }
+    };
+    console.log(sessions.value[userId]);
   }
 
   function selectUser(userId) {

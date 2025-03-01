@@ -37,9 +37,10 @@ const routes = [{
     component: ProfilePage,
   },
   {
-    path: '/groups/:groupId',
-    name: 'UpdateGroup',
+    path: "/groups/:groupId",
+    name: "UpdateGroup",
     component: UpdateGroup,
+    props: true,
   },
   {
     path: '/login',
