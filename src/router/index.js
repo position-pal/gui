@@ -8,6 +8,7 @@ import ProfilePage from '@/views/ProfilePage.vue';
 import LoginPage from '@/views/LoginPage.vue';
 import MapPage from '@/views/MapPage.vue';
 import GroupPage from '@/views/GroupPage.vue';
+import UpdateGroup from '@/views/UpdateGroup.vue'
 
 const routes = [{
     path: '/',
@@ -34,6 +35,11 @@ const routes = [{
     path: '/profile',
     name: 'Profile',
     component: ProfilePage,
+  },
+  {
+    path: '/groups/:groupId',
+    name: 'UpdateGroup',
+    component: UpdateGroup,
   },
   {
     path: '/login',

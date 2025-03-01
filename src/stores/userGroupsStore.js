@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useLocationStore } from '@/stores/locationStore.js'
 import { getLoggedInUser, getToken } from '@/scripts/user.js'
 import router from '@/router/index.js'
+import axios from 'axios'
 
 export const useUserGroupsStore = defineStore('userGroups', () => {
   const locationStore = useLocationStore()
@@ -43,11 +44,10 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
   })
 
   function broadcastLocation(position) {
-    console.log("Broadcasting location to enabled groups")
+    console.debug("Broadcasting location to enabled groups")
     groups.value.forEach(group => {
       if (group.trackingEnabled && websockets[group.id]?.isConnected) {
         const ws = websockets[group.id].connection
-        console.log("Sending update with websocket: ", ws, " and position: ", position)
         const message = {
           SampledLocation: {
             timestamp: position.timestamp,
@@ -56,7 +56,7 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
             position: position.coordinates
           }
         }
-        console.log(`Broadcasting message:`, message, " to group", group.id)
+        console.debug(`Broadcasting message:`, message, " to group", group.id)
         ws.send(JSON.stringify(message))
       }
     })
@@ -79,21 +79,10 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
     isLoading.value = true
     error.value = null
     try {
-      // TODO: @valerio please take care of this
-      // const response = await axios.get('api/user/groups')
-      const response = {
-        data: [
-          {
-            id: "a4b1093a-43b9-4a7b-88bc-8f84fcb967e0",
-            name: "Pimpa",
-            // + other info I don't care
-          }
-        ]
-      }
-      console.log(">> Response:")
-      console.log(response)
+      const user = getLoggedInUser()
+      const response = await axios.get('api/groups/user/' + user.id)
       const trackingState = JSON.parse(localStorage.getItem('trackingState')) || {}
-      groups.value = response.data.map(group => ({
+      groups.value = response.data.data.map(group => ({
         ...group,
         trackingEnabled: trackingState[group.id] === true
       }))
@@ -121,30 +110,32 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
   function openWebSocket(groupId) {
     if (websockets[groupId]) return
     const userData = getLoggedInUser()
-    console.log(`[WS] Opening WebSocket for group ${groupId}`)
-    console.log(`[WS] Already present websockets:`, websockets)
+    console.debug(`[WS] Opening WebSocket for group ${groupId}`)
+    console.debug(`[WS] Already present websockets:`, websockets)
     const ws = new WebSocket(
       `ws://localhost:3000/ws/location/${groupId}/${userData.id}`
     )
     ws.onopen = async () => {
-      console.log(`[WS] WebSocket connected for group ${groupId}`)
-      console.log("[WS] Authenticating WebSocket")
+      console.debug(`[WS] WebSocket connected for group ${groupId}`)
+      console.debug("[WS] Authenticating WebSocket")
       ws.send(JSON.stringify({ Authorization: `Bearer ${getToken()}` }))
     }
     ws.onclose = () => {
-      console.log(`[WS] WebSocket disconnected for group ${groupId}`)
+      console.debug(`[WS] WebSocket disconnected for group ${groupId}`)
       if (websockets[groupId]) {
         closeWebSocket(groupId)
       }
     }
     ws.onmessage = (message) => {
-      console.log(`[WS] WebSocket message for group ${groupId}:`, message.data)
+      console.debug(`[WS] WebSocket message for group ${groupId}:`, message.data)
       if (message.data === "OK") {
+        console.debug("[WS] WebSocket authorized")
         websockets[groupId] = { connection: ws, isConnected: true }
       } else if (message.data === "Unauthorized") {
         console.error("[WS] WebSocket unauthorized")
         closeWebSocket(groupId)
-        router.push({ name: 'login' }).then(() => console.log("Redirected to login"))
+        router.push({ name: 'login' })
+          .then(() => console.warn("Redirected to login caused 'unauthorized'"))
       } else {
         try {
           if (typeof  message.data === 'string') {
@@ -160,11 +151,11 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
       }
     }
     ws.onerror = (error) => console.error(`WebSocket for (${groupId}, ${userData.id}):`, error)
-    console.log(`[WS] All websockets: `, websockets)
+    console.debug(`[WS] All websockets: `, websockets)
   }
 
   function handleMessage(data, groupId) {
-    console.log("[WS] Received message:", data)
+    console.debug("[WS] Received message:", data)
     if (messageListeners[groupId]) {
       messageListeners[groupId].forEach(listener => {
         try {
