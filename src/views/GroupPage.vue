@@ -121,6 +121,11 @@ const createGroupByName = async () => {
 </script>
 
 <style scoped>
+
+.list-group{
+  max-height: 100%;
+}
+
 .popup-overlay {
   position: fixed;
   top: 0;
