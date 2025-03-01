@@ -82,7 +82,7 @@ const handleUserClick = () => {
 async function updateDistance() {
   if (currentPosition.value && localUser.location) {
     const dist = locationStore.calculateDistance(localUser.location);
-    distance.value = dist != null ? Math.trunc(dist) : "N/A";
+    distance.value = dist != null ? Math.round(dist) : "N/A";
   }
 }
 

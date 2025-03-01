@@ -20,11 +20,11 @@ export default {
 .app-wrapper {
   display: flex;
   flex-direction: column;
-  height: 100vh; /* L'intera altezza del viewport */
+  height: 100vh;
 }
 
 .main-content {
-  flex: 1;       /* Occupa lo spazio rimanente */
-  overflow: auto; /* Permette lo scroll se necessario */
+  flex: 1; /* This will make the main content take up the remaining space */
+  overflow: auto; /* This will make the main content scrollable */
 }
 </style>
