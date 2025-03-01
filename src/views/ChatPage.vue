@@ -12,6 +12,12 @@
 import ChatHeader from '../components/chat/ChatHeader.vue';
 import MessageList from '../components/chat/MessageList.vue';
 import MessageInput from '../components/chat/MessageInput.vue';
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
+const groupId = route.params.groupId;
+
+console.log(groupId);
 
 export default {
   name: 'ChatPage',
