@@ -42,18 +42,15 @@ function updateMarkers() {
       map.value.removeLayer(layer)
     }
   })
-
   // Remove old polylines
   Object.values(routes.value).forEach(route => {
     map.value.removeLayer(route)
   })
   routes.value = {}
-
   const users = usersInfo.value
   users.forEach(user => {
     const location = user.location
     if (!location || !location.latitude || !location.longitude) return
-
     if (markers.value[user.id]) {
       markers.value[user.id].setLatLng([location.latitude, location.longitude])
       markers.value[user.id].setPopupContent(createPopupContent(user))
@@ -62,7 +59,6 @@ function updateMarkers() {
         .bindPopup(createPopupContent(user))
         .addTo(map.value)
     }
-
     if (
       selection.value &&
       selection.value.userId === user.id &&
@@ -77,7 +73,6 @@ function updateMarkers() {
         className: 'user-route'
       }).addTo(map.value)
       routes.value[user.id] = polyline
-
       coordinates.forEach((coord, index) => {
         const timestamp = user.tracking[index].timestamp
         L.circleMarker(coord, {
