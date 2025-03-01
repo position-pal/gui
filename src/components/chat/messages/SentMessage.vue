@@ -1,9 +1,13 @@
 <template>
   <div class="d-flex justify-content-end mb-4">
     <div class="message message-sent rounded p-3">
-      <div class="fw-bold mb-1">You</div>
+      <div class="fw-bold mb-1">
+        You
+      </div>
       {{ text }}
-      <div class="text-muted small mt-1">{{ time }}</div>
+      <div class="text-muted small mt-1">
+        {{ time }}
+      </div>
     </div>
   </div>
 </template>

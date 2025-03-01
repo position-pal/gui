@@ -1,9 +1,13 @@
 <template>
   <div class="d-flex mb-4">
     <div class="message message-received rounded p-3">
-      <div class="fw-bold mb-1">{{ sender }}</div>
+      <div class="fw-bold mb-1">
+        {{ sender }}
+      </div>
       {{ text }}
-      <div class="text-muted small mt-1">{{ time }}</div>
+      <div class="text-muted small mt-1">
+        {{ time }}
+      </div>
     </div>
   </div>
 </template>

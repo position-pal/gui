@@ -1,6 +1,12 @@
 <template>
-  <div class="messages-box p-3" id="messages">
-    <template v-for="(message, index) in messages" :key="index">
+  <div
+    id="messages"
+    class="messages-box p-3"
+  >
+    <template
+      v-for="(message, index) in messages"
+      :key="index"
+    >
       <InfoMessage
         v-if="message.isInfo"
         :text="message.text"

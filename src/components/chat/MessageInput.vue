@@ -1,8 +1,19 @@
 <template>
   <div class="chat-input bg-light p-3">
     <div class="input-group">
-      <input type="text" class="form-control" v-model="message" @keyup.enter="send" placeholder="Type a message...">
-      <button class="btn btn-primary" @click="send">Send</button>
+      <input
+        v-model="message"
+        type="text"
+        class="form-control"
+        placeholder="Type a message..."
+        @keyup.enter="send"
+      >
+      <button
+        class="btn btn-primary"
+        @click="send"
+      >
+        Send
+      </button>
     </div>
   </div>
 </template>
