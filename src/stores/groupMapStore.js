@@ -15,7 +15,8 @@ export const useGroupMapStore = defineStore('groupMap', () => {
       const userInfo = sessions.value[user.id]
       return {
         id: user.id,
-        name: `${user.name} ${user.surname}`,
+        name: user.name,
+        surname: user.surname,
         state: userInfo?.state || 'INACTIVE',
         lastSeen: userInfo?.lastSeen,
         location: userInfo?.location,

@@ -14,22 +14,45 @@
       <form @submit.prevent="submitForm">
         <div class="form-group">
           <label for="destination">Destination</label>
-          <input
-            id="destination"
-            v-model="formData.destination"
-            type="text"
-            placeholder="Where are you going?"
-            required
-          >
+          <div class="autocomplete-container">
+            <input
+              id="destination"
+              v-model="destinationQuery"
+              type="text"
+              placeholder="Where are you going?"
+              class="form-control"
+              required
+              @input="searchAddresses"
+            >
+            <div
+              v-if="suggestions.length > 0"
+              class="suggestions-dropdown"
+            >
+              <div
+                v-for="(suggestion, index) in suggestions"
+                :key="index"
+                class="suggestion-item"
+                @click="selectAddress(suggestion)"
+              >
+                {{ suggestion.place_name }}
+              </div>
+            </div>
+          </div>
         </div>
         <div class="form-group">
           <label for="arrivalTime">Expected Arrival Time</label>
           <input
             id="arrivalTime"
-            v-model="formData.arrivalTime"
+            v-model="arrivalTime"
             type="datetime-local"
             required
           >
+        </div>
+        <div
+          v-if="error"
+          class="error"
+        >
+          {{ error }}
         </div>
         <div class="form-actions">
           <button
@@ -51,25 +74,106 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'RouteFormDialog',
-  emits: ['close', 'submit'],
-  data() {
-    return {
-      formData: {
-        destination: '',
-        arrivalTime: ''
-      }
-    }
-  },
-  methods: {
-    submitForm() {
-      this.$emit('submit', { ...this.formData })
-      this.formData.destination = ''
-      this.formData.arrivalTime = ''
+<script setup>
+import { defineEmits, ref } from 'vue'
+import { useUserGroupsStore } from '@/stores/userGroupsStore.js'
+import { useGroupMapStore } from '@/stores/groupMapStore.js'
+import { formatToISO } from '@/scripts/utils.js'
+import { useLocationStore } from '@/stores/locationStore.js'
+import { fetchCoordinates } from '@/scripts/geo.js'
+
+const emit = defineEmits(['close', 'submit'])
+const userGroupsStore = useUserGroupsStore()
+const groupMapStore = useGroupMapStore()
+const locationStore = useLocationStore()
+
+const destinationQuery = ref('')
+const arrivalTime = ref('')
+const suggestions = ref([])
+const selectedAddress = ref(null)
+const error = ref('')
+let searchTimeout = null
+const groupId = groupMapStore.groupId
+
+function searchAddresses() {
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+  }
+  // don't search for less than 3 characters
+  if (!destinationQuery.value || destinationQuery.value.length < 3) {
+    suggestions.value = []
+    return
+  }
+  // set a timeout to avoid making too many requests on every keystroke
+  searchTimeout = setTimeout(() => fetchAddresses(), 300)
+}
+
+async function fetchAddresses() {
+  try {
+    const results = await fetchCoordinates(destinationQuery.value, {
+      limit: 5,
+      language: 'en',
+    })
+    suggestions.value = results
+    console.debug("Fetched addresses", suggestions.value)
+  } catch (error) {
+    console.error('Failed to fetch addresses', error);
+    suggestions.value = [];
+  }
+}
+
+function selectAddress(address) {
+  selectedAddress.value = {
+    display_name: address.place_name,
+    lon: address.center[0],
+    lat: address.center[1],
+    // Additional properties if needed
+    properties: address.properties,
+    place_type: address.place_type
+  };
+  destinationQuery.value = address.place_name;
+  suggestions.value = [];
+}
+
+async function submitForm() {
+  error.value = ''
+  if (!selectedAddress.value || !selectedAddress.value.lat || !selectedAddress.value.lon) {
+    error.value = "Please select a valid destination first"
+    return
+  }
+  if (!arrivalTime.value) {
+    error.value = "Please select an arrival time"
+    return
+  }
+  const groupInfo = userGroupsStore.groups.find(g => g.id === groupId)
+  if (!groupInfo.trackingEnabled) {
+    await userGroupsStore.toggleGroupTracking(groupId)
+  }
+  const currentLocation = locationStore.currentPosition.coordinates
+  if (!currentLocation) {
+    error.value = "Current location not available"
+    return
+  }
+  emit('submit', { destination: selectedAddress.value, arrivalTime: arrivalTime.value })
+  const destination = {
+    latitude: selectedAddress.value.lat,
+    longitude: selectedAddress.value.lon
+  }
+  const eta = formatToISO(arrivalTime.value)
+  console.debug("Route towards", destination, " - ETA:", eta)
+  const routingStartedEvent = {
+    RoutingStarted: {
+      timestamp: "2019-08-24T14:15:22Z",
+      user: "string",
+      group: "string",
+      position: currentLocation,
+      mode: "Walking",
+      destination: destination,
+      expectedArrival: eta
     }
   }
+  console.log("Sending routing started event", routingStartedEvent)
+  userGroupsStore.sendToGroup(groupMapStore.groupId, routingStartedEvent)
 }
 </script>
 
@@ -152,5 +256,37 @@ export default {
 
 .btn-secondary:hover {
   background: #e0e0e0;
+}
+
+.autocomplete-container {
+  position: relative;
+}
+
+.suggestions-dropdown {
+  position: absolute;
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  z-index: 1000;
+}
+
+.suggestion-item {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.suggestion-item:hover {
+  background-color: #f5f5f5;
+}
+
+.error {
+  color: #e74c3c;
+  font-size: 14px;
+  margin-bottom: 12px;
+  text-align: center;
 }
 </style>

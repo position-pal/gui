@@ -4,18 +4,22 @@
     @click="handleUserClick"
   >
     <div class="icon">
-      <i class="bi bi-person-circle" />
+      <img
+        :src="`https://ui-avatars.com/api/?background=random&name=${name}+${surname}`"
+        alt="Avatar"
+        class="profile-avatar"
+      >
     </div>
     <div class="info">
       <h4>
-        {{ localUser.name }}
+        {{ localUser.name }} {{ localUser.surname }}
         <span
           class="info-badge"
           :style="{ background: colorForStatus(localUser.state) }"
         >{{ localUser.state }}</span>
       </h4>
       <p v-if="localUser.lastSeen">
-        {{ localUser.location }} • {{ localUser.lastSeen }}
+        {{ address }} • {{ localUser.location }} • {{ localUser.lastSeen }}
       </p>
     </div>
     <div class="distance info-badge">
@@ -30,6 +34,8 @@ import { useGroupMapStore } from '@/stores/groupMapStore.js'
 import { useUserGroupsStore } from '@/stores/userGroupsStore.js'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import { getAddressFromCoordinates } from '@/scripts/geo.js'
+import * as turf from '@turf/turf'
 
 const props = defineProps({
   user: {
@@ -45,7 +51,9 @@ const { currentPosition } = storeToRefs(locationStore)
 
 const distance = ref("N/A")
 const localUser = reactive({ ...props.user })
+const address = ref('')
 let websocketUnsubscribe = null
+const { name, surname } = localUser
 const groupId = groupMapStore.groupId;
 
 const hasLocation = computed(() => {
@@ -57,18 +65,20 @@ const hasLocation = computed(() => {
 watch(() => props.user, (newUser) => Object.assign(localUser, newUser), { deep: true })
 watch(currentPosition, updateDistance)
 watch(() => localUser.location, updateDistance, { deep: true })
+watch(() => localUser.location, updateAddress, { deep: true })
 
 onMounted(() => {
   locationStore.startTracking()
   updateDistance()
+  updateAddress()
   websocketUnsubscribe = userGroupsStore.addGroupMessageListener(groupId, handleWebsocketMessage)
-  console.log(`Subscribed to group messages of ${groupId}::${localUser.id}`)
+  console.debug(`Subscribed to group messages of ${groupId}::${localUser.id}`)
 })
 
 onUnmounted(() => {
   if (websocketUnsubscribe) {
     websocketUnsubscribe()
-    console.log(`Unsubscribed from group messages of ${groupId}::${localUser.id}`)
+    console.debug(`Unsubscribed from group messages of ${groupId}::${localUser.id}`)
   }
 })
 
@@ -86,6 +96,27 @@ async function updateDistance() {
   }
 }
 
+async function updateAddress() {
+  try {
+    if (hasLocation.value) {
+      if (turf.distance(
+        turf.point([
+          currentPosition.value.coordinates.longitude,
+          currentPosition.value.coordinates.latitude
+        ]),
+        turf.point([localUser.location.longitude, localUser.location.latitude]),
+        { units: 'meters' }
+      ) > 20) {
+        const addrInfo = await getAddressFromCoordinates(localUser.location.latitude, localUser.location.longitude);
+        console.log(addrInfo)
+        address.value = JSON.stringify(addrInfo);
+      }
+    }
+  } catch (error) {
+    console.error('Failed to get address:', error)
+  }
+}
+
 function handleWebsocketMessage(message) {
   if (message && message.UserUpdate) {
     const { user, group, position, status, timestamp } = message.UserUpdate
@@ -95,7 +126,7 @@ function handleWebsocketMessage(message) {
         location: position?.[0],
         lastSeen: timestamp,
       }
-      console.log('Updating user session:', sessionData)
+      console.debug('Updating user session:', sessionData)
       groupMapStore.updateUserSession(localUser.id, sessionData)
       updateDistance()
     }
@@ -156,5 +187,13 @@ function colorForStatus(status) {
 }
 .distance {
   background: #1d93c8;
+}
+.profile-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  object-fit: cover;
+  background: #fff;
 }
 </style>

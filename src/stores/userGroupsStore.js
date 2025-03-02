@@ -77,6 +77,12 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
     ws.send(JSON.stringify(text));
   }
 
+  function sendToGroup(groupId, message) {
+    if (trackingWebsockets[groupId]?.isConnected) {
+      const ws = trackingWebsockets[groupId].connection
+      ws.send(JSON.stringify(message))
+    }
+  }
 
   function broadcastSOS() {
     if (sosActive.value) {
@@ -386,6 +392,7 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
     isLoading,
     error,
     sosActive,
+    sendToGroup,
     broadcastSOS,
     stopSOS,
     fetchUserGroups,
