@@ -147,9 +147,10 @@
 
 <script>
 import GradientBackground from '@/components/GradientBackground.vue'
-import { login, registerAndLogin } from '@/scripts/user.js'
+import { getLoggedInUser, login, registerAndLogin } from '@/scripts/user.js'
 import { ref, nextTick, onMounted } from 'vue'
 import router from '@/router/index.js'
+import { askForNotificationPermission } from '@/scripts/firebase-notifications.js'
 
 export default {
   components: {
@@ -195,6 +196,9 @@ export default {
 
     const handleLogin = async () => {
       if (await login(loginData.value.email, loginData.value.password)) {
+        if ('Notification' in window) {
+          await askForNotificationPermission(getLoggedInUser().id)
+        }
         await router.push('/')
       } else {
         alert('Login failed')
