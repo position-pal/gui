@@ -129,7 +129,10 @@ export const useLocationStore = defineStore('location', () => {
   }
 
   const calculateDistance = (targetCoords) => {
-    if (!currentPosition.value || !targetCoords.longitude || !targetCoords.latitude) return null
+    if (!currentPosition.value || !targetCoords.longitude || !targetCoords.latitude) {
+      console.error("[Location] Cannot calculate distance, missing data")
+      return null
+    }
     const from = turf.point(
       [
         currentPosition.value.coordinates.longitude,

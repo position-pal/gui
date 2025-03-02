@@ -19,7 +19,7 @@
         >{{ localUser.state }}</span>
       </h4>
       <p v-if="localUser.lastSeen">
-        {{ address }} • {{ localUser.location }} • {{ localUser.lastSeen }}
+        {{ address }} • {{ localUser.lastSeen }}
       </p>
     </div>
     <div class="distance info-badge">
@@ -65,12 +65,12 @@ const hasLocation = computed(() => {
 watch(() => props.user, (newUser) => Object.assign(localUser, newUser), { deep: true })
 watch(currentPosition, updateDistance)
 watch(() => localUser.location, updateDistance, { deep: true })
-watch(() => localUser.location, updateAddress, { deep: true })
+watch(() => localUser.location, (newAddr, oldAddr) => updateAddress(newAddr, oldAddr), { deep: true })
 
 onMounted(() => {
   locationStore.startTracking()
   updateDistance()
-  updateAddress()
+//  updateAddress()
   websocketUnsubscribe = userGroupsStore.addGroupMessageListener(groupId, handleWebsocketMessage)
   console.debug(`Subscribed to group messages of ${groupId}::${localUser.id}`)
 })
@@ -96,24 +96,22 @@ async function updateDistance() {
   }
 }
 
-async function updateAddress() {
-  try {
-    if (hasLocation.value) {
-      if (turf.distance(
-        turf.point([
-          currentPosition.value.coordinates.longitude,
-          currentPosition.value.coordinates.latitude
-        ]),
-        turf.point([localUser.location.longitude, localUser.location.latitude]),
-        { units: 'meters' }
-      ) > 20) {
-        const addrInfo = await getAddressFromCoordinates(localUser.location.latitude, localUser.location.longitude);
-        console.log(addrInfo)
-        address.value = JSON.stringify(addrInfo);
-      }
+async function updateAddress(newUserPosition, oldUserPosition) {
+  if (!oldUserPosition || turf.distance(
+    turf.point([
+      oldUserPosition.longitude,
+      oldUserPosition.latitude
+    ]),
+    turf.point([newUserPosition.longitude, newUserPosition.latitude]),
+    { units: 'meters' }
+  ) > 20) {
+    try {
+      console.log('Getting address for user:', localUser)
+      const addrInfo = await getAddressFromCoordinates(newUserPosition.latitude, newUserPosition.longitude);
+      address.value = addrInfo.place_name;
+    } catch (error) {
+      console.error('Failed to get address:', error)
     }
-  } catch (error) {
-    console.error('Failed to get address:', error)
   }
 }
 
