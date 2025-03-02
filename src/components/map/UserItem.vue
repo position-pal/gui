@@ -70,7 +70,7 @@ watch(() => localUser.location, (newAddr, oldAddr) => updateAddress(newAddr, old
 onMounted(() => {
   locationStore.startTracking()
   updateDistance()
-//  updateAddress()
+  updateAddress(props.user.location)
   websocketUnsubscribe = userGroupsStore.addGroupMessageListener(groupId, handleWebsocketMessage)
   console.debug(`Subscribed to group messages of ${groupId}::${localUser.id}`)
 })
@@ -97,14 +97,11 @@ async function updateDistance() {
 }
 
 async function updateAddress(newUserPosition, oldUserPosition) {
-  if (!oldUserPosition || turf.distance(
-    turf.point([
-      oldUserPosition.longitude,
-      oldUserPosition.latitude
-    ]),
+  if (newUserPosition && (!oldUserPosition || turf.distance(
+    turf.point([oldUserPosition.longitude, oldUserPosition.latitude]),
     turf.point([newUserPosition.longitude, newUserPosition.latitude]),
     { units: 'meters' }
-  ) > 20) {
+  ) > 20)) {
     try {
       console.log('Getting address for user:', localUser)
       const addrInfo = await getAddressFromCoordinates(newUserPosition.latitude, newUserPosition.longitude);
