@@ -16,45 +16,27 @@ import MessageInput from '../components/chat/MessageInput.vue';
 import { useRoute } from 'vue-router';
 import { onMounted } from 'vue';
 import { useChatStore } from '@/stores/chatStore';
-// import { useUserGroupsStore } from '@/stores/userGroupsStore';
+import { useUserGroupsStore } from '@/stores/userGroupsStore';
 
 const route = useRoute();
 const chatStore = useChatStore();
-// const userGroupsStore = useUserGroupsStore();
+const userGroupsStore = useUserGroupsStore();
 
 const groupId = route.params.groupId;
 
 const { name: chatTitle, messages } = storeToRefs(chatStore);
 
-// const messages = [
-//   { text: 'Welcome to the chat room!', isInfo: true },
-//   { sender: 'John Doe', text: 'Hello! How are you today?', isSent: false, time: '09:00' },
-//   { sender: 'You', text: "I'm doing great, thanks for asking!", isSent: true, time: '09:01' },
-//   { text: 'John Doe is typing...', isInfo: true },
-//   { sender: 'John Doe', text: 'What are you working on?', isSent: false, time: '09:02' },
-//   { sender: 'You', text: 'I am working on a Vue.js chat application', isSent: true, time: '09:03' },
-//   { text: 'John Doe left the chat', isInfo: true }
-// ];
 
 onMounted(async () => {
   chatStore.setCurrentGroupId(groupId);
-  //await userGroupsStore.fetchUserGroups();
-
   await chatStore.retrieveGroupInformation();
   await chatStore.retrieveMessages();
+  await userGroupsStore.fetchUserGroups();
 });
 
 function sendMessage(messageText) {
   if (messageText.trim()) {
-    const now = new Date();
-    const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-
-    this.messages.push({
-      sender: 'You',
-      text: messageText,
-      isSent: true,
-      time: time
-    })
+    userGroupsStore.sendChatMessage(messageText, groupId);
   }
 }
 </script>
@@ -63,6 +45,6 @@ function sendMessage(messageText) {
 .chat-view {
   display: flex;
   flex-direction: column;
-  height: 90vh;
+  height: 88vh;
 }
 </style>

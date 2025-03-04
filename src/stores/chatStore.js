@@ -21,6 +21,54 @@ export const useChatStore = defineStore('chat', () => {
     groupId.value = null;
   }
 
+  function addInformationMessage(messageData) {
+    const [informationText, clientId] = messageData;
+    const member = getMember(clientId);
+    const name = `${member.name} ${member.surname}`;
+    const formattedText = `[${name}]: ${informationText}`;
+
+    const infoMessage = {
+      text: formattedText,
+      isInfo: true
+    }
+    messages.value.push(infoMessage);
+  }
+
+  function addUserMessage(messageData) {
+    const clientId = messageData[1];
+    const text = messageData[2];
+    const rawTimestamp = messageData[3];
+    console.log(rawTimestamp);
+
+    const loggedUser = getLoggedInUser();
+    const isSent = clientId === loggedUser.id;
+    let senderName;
+    if (isSent) {
+      senderName = "You";
+    } else if (members.value && members.value[clientId]) {
+      const sender = members.value[clientId];
+      senderName = `${sender.name} ${sender.surname}`;
+    }
+
+    const timestamp = new Date(rawTimestamp);
+    const time = `${timestamp.getHours().toString().padStart(2, '0')}:${timestamp.getMinutes().toString().padStart(2, '0')}`;
+
+    const formattedContent = text.replace(/^"|"$/g, '');
+    const message = {
+      sender: senderName,
+      text: formattedContent,
+      isSent: isSent,
+      time: time
+    };
+
+    messages.value.push(message);
+  }
+
+  function getMember(clientId) {
+    return members.value[clientId];
+  }
+
+
   async function retrieveGroupInformation() {
     if(groupId.value == null) console.error("ChatRoom isn't initialized yet");
     const groupInformation = await userGroupStore.getGroupInformation(groupId.value);
@@ -66,8 +114,6 @@ export const useChatStore = defineStore('chat', () => {
         };
       });
 
-      console.log(messages.value);
-
     } catch(e) {
       console.error(e.message)
     }
@@ -78,7 +124,9 @@ export const useChatStore = defineStore('chat', () => {
     messages,
     setCurrentGroupId,
     retrieveGroupInformation,
-    retrieveMessages
+    retrieveMessages,
+    addInformationMessage,
+    addUserMessage
   }
 
 });
