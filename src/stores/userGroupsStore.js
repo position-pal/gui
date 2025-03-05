@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed, reactive, watch } from 'vue'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useLocationStore } from '@/stores/locationStore.js'
+import { useChatStore } from '@/stores/chatStore';
 import { getLoggedInUser, getToken, isTestUser } from '@/scripts/user.js'
 import router from '@/router/index.js'
 import axios from 'axios'
@@ -9,10 +10,13 @@ import { getMockedPosition } from '@/scripts/mocked-location.js'
 
 export const useUserGroupsStore = defineStore('userGroups', () => {
   const locationStore = useLocationStore()
+  const chatStore = useChatStore();
+
   let locationUnsubscribe = null
 
   const groups = ref([])
-  const websockets = reactive({})
+  const trackingWebsockets = reactive({})
+  const chatWebsockets = reactive({})
 
   const messageListeners = reactive({})
 
@@ -24,8 +28,8 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
 
   const groupsWithConnection = computed(() => {
     return groups.value.map(group => {
-      const hasWebSocket = !!websockets[group.id]
-      const isConnected = hasWebSocket ? websockets[group.id].isConnected : false
+      const hasWebSocket = !!trackingWebsockets[group.id]
+      const isConnected = hasWebSocket ? trackingWebsockets[group.id].isConnected : false
       return {
         ...group,
         isConnected
@@ -51,8 +55,8 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
   function broadcastLocation(position) {
     console.debug("Broadcasting location to enabled groups")
     groups.value.forEach(group => {
-      if (group.trackingEnabled && websockets[group.id]?.isConnected) {
-        const ws = websockets[group.id].connection
+      if (group.trackingEnabled && trackingWebsockets[group.id]?.isConnected) {
+        const ws = trackingWebsockets[group.id].connection
         const message = {
           SampledLocation: {
             timestamp: position.timestamp,
@@ -66,6 +70,13 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
       }
     })
   }
+
+  function sendChatMessage(text, groupId) {
+    console.log("Sending a message in the chat");
+    const ws = chatWebsockets[groupId].connection;
+    ws.send(JSON.stringify(text));
+  }
+
 
   function broadcastSOS() {
     if (sosActive.value) {
@@ -81,9 +92,9 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
         group.trackingEnabled = true
         await saveTrackingState(group.id, true)
       }
-      if (!websockets[group.id]) {
-        openWebSocket(group.id)
-      } else if (websockets[group.id].isConnected) {
+      if (!trackingWebsockets[group.id]) {
+        openTrackingWebSocket(group.id)
+      } else if (trackingWebsockets[group.id].isConnected) {
         sendSosToGroup(group.id)
       }
     })
@@ -97,14 +108,14 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
   }
 
   function sendSosToGroup(groupId) {
-    if (!websockets[groupId]?.isConnected) return
+    if (!trackingWebsockets[groupId]?.isConnected) return
     let currentPosition;
     if (isTestUser()) {
       currentPosition = getMockedPosition()
     } else {
       currentPosition = locationStore.currentPosition
     }
-    const ws = websockets[groupId].connection
+    const ws = trackingWebsockets[groupId].connection
     if (!currentPosition.coordinates) {
       console.error("No current position available")
       return
@@ -129,8 +140,8 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
     console.debug("Stopping SOS broadcast")
     // Send final message to notify all groups that SOS is no longer active
     groups.value.forEach(group => {
-      if (websockets[group.id]?.isConnected) {
-        const ws = websockets[group.id].connection
+      if (trackingWebsockets[group.id]?.isConnected) {
+        const ws = trackingWebsockets[group.id].connection
         const message = {
           SOSAlertStopped: {
             timestamp: new Date().toISOString(),
@@ -186,17 +197,18 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
 
   function initializeWebSockets() {
     groups.value.forEach(group => {
-      if (!websockets[group.id]) {
-        openWebSocket(group.id)
+      if (!trackingWebsockets[group.id]) {
+        openTrackingWebSocket(group.id)
+        openChatWebSocket(group.id)
       }
     })
   }
 
-  function openWebSocket(groupId) {
-    if (websockets[groupId]) return
+  function openTrackingWebSocket(groupId) {
+    if (trackingWebsockets[groupId]) return
     const userData = getLoggedInUser()
     console.debug(`[WS] Opening WebSocket for group ${groupId}`)
-    console.debug(`[WS] Already present websockets:`, websockets)
+    console.debug(`[WS] Already present websockets:`, trackingWebsockets)
     const ws = new WebSocket(
       `ws://localhost:3000/ws/location/${groupId}/${userData.id}`
     )
@@ -207,22 +219,22 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
     }
     ws.onclose = () => {
       console.debug(`[WS] WebSocket disconnected for group ${groupId}`)
-      if (websockets[groupId]) {
-        closeWebSocket(groupId)
+      if (trackingWebsockets[groupId]) {
+        closeTrackingWebSocket(groupId)
       }
     }
     ws.onmessage = (message) => {
       console.debug(`[WS] WebSocket message for group ${groupId}:`, message.data)
       if (message.data === "OK") {
         console.debug("[WS] WebSocket authorized")
-        websockets[groupId] = { connection: ws, isConnected: true }
+        trackingWebsockets[groupId] = { connection: ws, isConnected: true }
         if (sosActive.value && pendingSosGroups.value.includes(groupId)) {
           sendSosToGroup(groupId)
           pendingSosGroups.value = pendingSosGroups.value.filter(g => g !== groupId)
         }
       } else if (message.data === "Unauthorized") {
         console.error("[WS] WebSocket unauthorized")
-        closeWebSocket(groupId)
+        closeTrackingWebSocket(groupId)
         router.push({ name: 'login' })
           .then(() => console.warn("Redirected to login caused 'unauthorized'"))
       } else {
@@ -240,7 +252,57 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
       }
     }
     ws.onerror = (error) => console.error(`WebSocket for (${groupId}, ${userData.id}):`, error)
-    console.debug(`[WS] All websockets: `, websockets)
+    console.debug(`[WS] All websockets: `, trackingWebsockets)
+  }
+
+  function openChatWebSocket(groupId) {
+    if (chatWebsockets[groupId]) return
+    const userData = getLoggedInUser()
+    console.debug(`[WS] Opening WebSocket for group ${groupId}`)
+    console.debug(`[WS] Already present websockets:`, chatWebsockets)
+    const ws = new WebSocket(
+      `ws://localhost:3000/ws/chat/${groupId}/${userData.id}`
+    )
+
+    ws.onopen = async () => {
+      console.debug(`[WS] WebSocket connected for group ${groupId}`)
+      console.debug("[WS] Authenticating WebSocket")
+      ws.send(JSON.stringify({ Authorization: `Bearer ${getToken()}` }))
+    }
+
+    ws.onclose = () => {
+      console.debug(`[WS] WebSocket disconnected for group ${groupId}`)
+      if (chatWebsockets[groupId]) {
+        closeTrackingWebSocket(groupId)
+      }
+    }
+
+    ws.onmessage = (message) => {
+      console.debug(`[WS] WebSocket message for group ${groupId}:`, message.data)
+      if (message.data === "OK") {
+        console.debug("[WS] WebSocket authorized")
+        chatWebsockets[groupId] = { connection: ws, isConnected: true }
+      } else if (message.data === "Unauthorized") {
+        console.error("[WS] WebSocket unauthorized")
+        closeChatWebSocket(groupId)
+        router.push({ name: 'login' })
+          .then(() => console.warn("Redirected to login caused 'unauthorized'"))
+      } else {
+        message.data.text().then(text => handleChatMessage(JSON.parse(text)));
+      }
+    }
+    ws.onerror = (error) => console.error(`WebSocket for (${groupId}, ${userData.id}):`, error)
+    console.debug(`[WS] All websockets: `, chatWebsockets)
+  }
+
+  function handleChatMessage(data) {
+    const [type, msg] = data;
+    console.log(type);
+    if(type === "Information") {
+      chatStore.addInformationMessage(msg);
+    } else {
+      chatStore.addUserMessage(msg);
+    }
   }
 
   function handleMessage(data, groupId) {
@@ -256,10 +318,17 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
     }
   }
 
-  function closeWebSocket(groupId) {
-    if (websockets[groupId]) {
-      websockets[groupId].connection.close()
-      delete websockets[groupId]
+  function closeTrackingWebSocket(groupId) {
+    if (chatWebsockets[groupId]) {
+      chatWebsockets[groupId].connection.close()
+      delete chatWebsockets[groupId]
+    }
+  }
+
+  function closeChatWebSocket(groupId) {
+    if (trackingWebsockets[groupId]) {
+      trackingWebsockets[groupId].connection.close()
+      delete trackingWebsockets[groupId]
       delete messageListeners[groupId]
     }
   }
@@ -273,8 +342,8 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
     try {
       group.trackingEnabled = !group.trackingEnabled
       await saveTrackingState(groupId, group.trackingEnabled)
-      if (!websockets[groupId]) {
-        openWebSocket(groupId)
+      if (!trackingWebsockets[groupId]) {
+        openTrackingWebSocket(groupId)
       }
     } catch (e) {
       error.value = e.message
@@ -286,8 +355,8 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
       messageListeners[groupId] = []
     }
     messageListeners[groupId].push(listener)
-    if (!websockets[groupId]) {
-      openWebSocket(groupId)
+    if (!trackingWebsockets[groupId]) {
+      openTrackingWebSocket(groupId)
     }
     return () => {
       if (messageListeners[groupId]) {
@@ -302,7 +371,7 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
   function cleanup() {
     sosActive.value = false
     pendingSosGroups.value = []
-    Object.keys(websockets).forEach(closeWebSocket)
+    Object.keys(trackingWebsockets).forEach(closeTrackingWebSocket)
     Object.keys(messageListeners).forEach(groupId => delete messageListeners[groupId])
     if (locationUnsubscribe) {
       locationStore.stopTracking()
@@ -322,6 +391,7 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
     fetchUserGroups,
     addGroupMessageListener,
     toggleGroupTracking,
+    sendChatMessage,
     cleanup
   }
 })
