@@ -204,19 +204,6 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
     })
   }
 
-  async function getGroupInformation(groupId) {
-    isLoading.value = true
-    error.value = null
-    try {
-      const response = await axios.get(`api/groups/${groupId}`);
-      return response.data.data;
-    } catch (e) {
-      error.value = e.message
-    } finally {
-      isLoading.value = false
-    }
-  }
-
   function openTrackingWebSocket(groupId) {
     if (trackingWebsockets[groupId]) return
     const userData = getLoggedInUser()
@@ -402,7 +389,6 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
     broadcastSOS,
     stopSOS,
     fetchUserGroups,
-    getGroupInformation,
     addGroupMessageListener,
     toggleGroupTracking,
     sendChatMessage,

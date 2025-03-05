@@ -29,9 +29,9 @@ const { name: chatTitle, messages } = storeToRefs(chatStore);
 
 onMounted(async () => {
   chatStore.setCurrentGroupId(groupId);
-  await chatStore.retrieveGroupInformation();
-  await chatStore.retrieveMessages();
   await userGroupsStore.fetchUserGroups();
+  await chatStore.retrieveMessages();
+  await chatStore.retrieveGroupInformation();
 });
 
 function sendMessage(messageText) {

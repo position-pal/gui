@@ -71,7 +71,7 @@ export const useChatStore = defineStore('chat', () => {
 
   async function retrieveGroupInformation() {
     if(groupId.value == null) console.error("ChatRoom isn't initialized yet");
-    const groupInformation = await userGroupStore.getGroupInformation(groupId.value);
+    const groupInformation = userGroupStore.groups.find(g => g.id === groupId.value)
     name.value =  groupInformation.name;
 
     const returnedMembers = groupInformation.members;
