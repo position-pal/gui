@@ -156,8 +156,11 @@ async function submitForm() {
   }
   emit('submit', { destination: selectedAddress.value, arrivalTime: arrivalTime.value })
   const destination = {
-    latitude: selectedAddress.value.lat,
-    longitude: selectedAddress.value.lon
+    name: selectedAddress.value.display_name,
+    location: {
+      latitude: selectedAddress.value.lat,
+      longitude: selectedAddress.value.lon
+    }
   }
   const eta = formatToISO(arrivalTime.value)
   console.debug("Route towards", destination, " - ETA:", eta)
