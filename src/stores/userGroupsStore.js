@@ -7,10 +7,12 @@ import { getLoggedInUser, getToken, isTestUser } from '@/scripts/user.js'
 import router from '@/router/index.js'
 import axios from 'axios'
 import { getMockedPosition } from '@/scripts/mocked-location.js'
+import { useGroupMapStore } from '@/stores/groupMapStore.js'
 
 export const useUserGroupsStore = defineStore('userGroups', () => {
   const locationStore = useLocationStore()
   const chatStore = useChatStore();
+  const mapStore = useGroupMapStore()
 
   let locationUnsubscribe = null
 
@@ -20,7 +22,10 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
 
   const messageListeners = reactive({})
 
-  const sosActive = ref(false)
+  const sosActive = computed(() => {
+    const user = mapStore?.usersInfo?.find(u => u.id === getLoggedInUser().id);
+    return user?.state === 'SOS' || false;
+  })
   const pendingSosGroups = ref([])
 
   const isLoading = ref(false)
