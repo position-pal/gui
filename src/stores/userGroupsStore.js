@@ -11,24 +11,24 @@ import { useGroupMapStore } from '@/stores/groupMapStore.js'
 import { BACKEND_ENDPOINT } from '@/config.js'
 
 export const useUserGroupsStore = defineStore('userGroups', () => {
+  /* Stores */
   const locationStore = useLocationStore()
   const chatStore = useChatStore();
   const mapStore = useGroupMapStore()
 
+  /* Local variables */
   let locationUnsubscribe = null
 
+  /* Reactive state */
   const groups = ref([])
   const trackingWebsockets = reactive({})
   const chatWebsockets = reactive({})
-
   const messageListeners = reactive({})
-
   const sosActive = computed(() => {
     const user = mapStore?.usersInfo?.find(u => u.id === getLoggedInUser().id);
     return user?.state === 'SOS' || false;
   })
   const pendingSosGroups = ref([])
-
   const isLoading = ref(false)
   const error = ref(null)
 
@@ -273,7 +273,7 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
     const userData = getLoggedInUser()
     console.debug(`[WS] Opening WebSocket for group ${groupId}`)
     console.debug(`[WS] Already present websockets:`, chatWebsockets)
-    const ws = new WebSocket(`ws://localhost:3000/ws/chat/${groupId}/${userData.id}`)
+    const ws = new WebSocket(`${BACKEND_ENDPOINT}/ws/chat/${groupId}/${userData.id}`)
     ws.onopen = async () => {
       console.debug(`[WS] WebSocket connected for group ${groupId}`)
       console.debug("[WS] Authenticating WebSocket")
