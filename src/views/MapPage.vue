@@ -13,7 +13,7 @@
     <!-- Container for the buttons to (de)activate position sharing and routing mode -->
     <div class="fab-container">
       <div
-        class="location-status new-position"
+        class="tracking-status"
         :class="{ 'active': isLocationSharingEnabled }"
       >
         <p v-if="isLocationSharingEnabled">
@@ -21,6 +21,9 @@
         </p>
         <p v-else>
           Location sharing is OFF
+        </p>
+        <p v-if="isRoutingEnabled">
+          , you are in routing mode!
         </p>
       </div>
       <button
@@ -49,10 +52,12 @@
       </button>
       <button
         class="route-fab"
-        title="Plan your route"
-        @click="openRouteForm"
+        :class="{ 'active': isRoutingEnabled }"
+        :title="isRoutingEnabled ? 'Stop routing' : 'Plan your route'"
+        @click="handleRoutingBtn"
       >
         <svg
+          v-if="!isRoutingEnabled"
           width="24"
           height="24"
           viewBox="0 0 24 24"
@@ -64,6 +69,21 @@
         >
           <path d="M9 20l-5.447-2.724A1 1 0 0 1 3 16.382V5.618a1 1 0 0 1 .553-.894L9 2m0 18v-18m0 18l6-3m-6-15l6-3m-6 0v18m6-18v18m0 0l5.447-2.724A1 1 0 0 0 21 16.382V5.618a1 1 0 0 0-.553-.894L15 2" />
         </svg>
+        <svg
+          v-else
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M4 4v16" />
+          <path d="M4 4c4 0 8 2 12 2v8c-4 0-8 2-12 2" />
+        </svg>
       </button>
     </div>
     <!-- Route sharing dialog -->
@@ -72,6 +92,34 @@
       @close="closeRouteForm"
       @submit="handleRouteSubmit"
     />
+    <!-- Routing confirmation dialog -->
+    <div
+      v-if="showStopRoutingDialog"
+      class="dialog-overlay"
+      @click="closeStopRoutingDialog"
+    >
+      <div
+        class="dialog-content"
+        @click.stop
+      >
+        <h3>Stop Routing</h3>
+        <p>Are you sure you want to stop sharing your route?</p>
+        <div class="dialog-actions">
+          <button
+            class="cancel-button"
+            @click="closeStopRoutingDialog"
+          >
+            Cancel
+          </button>
+          <button
+            class="confirm-button"
+            @click="stopRouting"
+          >
+            Stop Routing
+          </button>
+        </div>
+      </div>
+    </div>
     <!-- Members list container -->
     <div
       ref="listContainer"
@@ -117,11 +165,13 @@ import { useRoute } from 'vue-router'
 import MapView from '../components/map/MapView.vue';
 import UsersList from '../components/map/UsersList.vue';
 import RouteFormDialog from '../components/map/RouteFormDialog.vue';
+import { getLoggedInUser } from '@/scripts/user.js'
 
 const mapStore = useGroupMapStore();
 const userGroupsStore = useUserGroupsStore();
 const route = useRoute();
 
+const userId = getLoggedInUser().id;
 const groupId = route.params.groupId;
 
 const minHeight = 80;
@@ -129,11 +179,16 @@ const containerHeight = ref(300);
 const isMinimized = ref(false);
 const defaultHeight = 300;
 const showRouteForm = ref(false);
+const showStopRoutingDialog = ref(false);
 const mapContainer = ref(null);
 const listContainer = ref(null);
 
 const isLocationSharingEnabled = computed(() =>
   userGroupsStore.groupsWithConnection.find(g => g.id === groupId)?.trackingEnabled || false
+)
+const isRoutingEnabled = computed(() =>
+  mapStore.usersInfo.find(u => u.id === userId)?.state === "ROUTING" ||
+    mapStore.usersInfo.find(u => u.id === userId)?.state === "WARNING" || false
 )
 
 const minimize = () => {
@@ -154,6 +209,16 @@ const toggleContainer = () => {
   isMinimized.value ? maximize() : minimize();
 };
 
+const handleRoutingBtn = () => {
+  maximize()
+  console.log("Handle routing button, isRoutingEnabled", isRoutingEnabled.value)
+  if (isRoutingEnabled.value) {
+    showStopRoutingDialog.value = true;
+  } else {
+    openRouteForm();
+  }
+};
+
 const openRouteForm = () => {
   showRouteForm.value = true;
 };
@@ -161,6 +226,23 @@ const openRouteForm = () => {
 const closeRouteForm = () => {
   maximize();
   showRouteForm.value = false;
+};
+
+const closeStopRoutingDialog = () => {
+  showStopRoutingDialog.value = false;
+};
+
+const stopRouting = async () => {
+  const routingStoppedEvent = {
+    RoutingStopped: {
+      timestamp: new Date().toISOString(),
+      user: userId,
+      group: groupId,
+    }
+  }
+  console.log("Sending routing stopped event", routingStoppedEvent)
+  userGroupsStore.sendToGroup(mapStore.groupId, routingStoppedEvent)
+  closeStopRoutingDialog();
 };
 
 const handleRouteSubmit = () => {
@@ -276,7 +358,7 @@ onMounted(async () => {
 
 .location-fab.active {
   background: #4CAF50;
-  position: relative; /* Importante per l'effetto pulse */
+  position: relative; /* Important for pulse effect */
 }
 
 .location-fab.active::before {
@@ -294,7 +376,27 @@ onMounted(async () => {
   color: white;
 }
 
-.location-status.new-position {
+.route-fab.active {
+  background-color: #8063d2;
+  position: relative; /* Important for pulse effect */
+}
+
+.route-fab.active::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: #8063d2;
+  animation: wave 0.5s infinite ease-in-out;
+  z-index: -1;
+}
+
+.route-fab.active svg {
+  color: white;
+}
+
+.tracking-status {
   position: relative;
   font-size: 12px;
   padding: 5px 10px;
@@ -306,11 +408,11 @@ onMounted(async () => {
   align-self: center;
 }
 
-.location-status.active {
+.tracking-status.active {
   background: #4CAF50;
 }
 
-.location-status p {
+.tracking-status p {
   margin: 0;
 }
 
@@ -327,6 +429,63 @@ onMounted(async () => {
     transform: scale(1.5);
     opacity: 0;
   }
+}
+
+@keyframes wave {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(2px) rotate(2deg); }
+}
+
+/* Dialog styles */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.dialog-content {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.dialog-content h3 {
+  margin-top: 0;
+  color: #333;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.cancel-button {
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.confirm-button {
+  padding: 8px 16px;
+  background: #f44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 /* Scrollbar Styles */
