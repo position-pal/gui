@@ -1,11 +1,11 @@
-const cesenaCampusLocation = {
+export const cesenaCampusLocation = {
   latitude: 44.147843982335836,
   longitude: 12.23510261898422,
 };
 
-const piazzaDelPopoloLocation = {
-  latitude: 44.13734012989611,
-  longitude: 12.243828352831988,
+export const piazzaDelPopoloLocation = {
+  latitude: 44.137462,
+  longitude: 12.241515,
 };
 
 function testablePath() {

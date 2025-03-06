@@ -7,22 +7,28 @@ import { getLoggedInUser, getToken, isTestUser } from '@/scripts/user.js'
 import router from '@/router/index.js'
 import axios from 'axios'
 import { getMockedPosition } from '@/scripts/mocked-location.js'
+import { useGroupMapStore } from '@/stores/groupMapStore.js'
+import { BACKEND_ENDPOINT } from '@/config.js'
 
 export const useUserGroupsStore = defineStore('userGroups', () => {
+  /* Stores */
   const locationStore = useLocationStore()
   const chatStore = useChatStore();
+  const mapStore = useGroupMapStore()
 
+  /* Local variables */
   let locationUnsubscribe = null
 
+  /* Reactive state */
   const groups = ref([])
   const trackingWebsockets = reactive({})
   const chatWebsockets = reactive({})
-
   const messageListeners = reactive({})
-
-  const sosActive = ref(false)
+  const sosActive = computed(() => {
+    const user = mapStore?.usersInfo?.find(u => u.id === getLoggedInUser().id);
+    return user?.state === 'SOS' || false;
+  })
   const pendingSosGroups = ref([])
-
   const isLoading = ref(false)
   const error = ref(null)
 
@@ -77,6 +83,12 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
     ws.send(JSON.stringify(text));
   }
 
+  function sendToGroup(groupId, message) {
+    if (trackingWebsockets[groupId]?.isConnected) {
+      const ws = trackingWebsockets[groupId].connection
+      ws.send(JSON.stringify(message))
+    }
+  }
 
   function broadcastSOS() {
     if (sosActive.value) {
@@ -205,13 +217,14 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
   }
 
   function openTrackingWebSocket(groupId) {
-    if (trackingWebsockets[groupId]) return
+    if (trackingWebsockets[groupId]) {
+      console.log("WebSocket already open for group", groupId)
+      return
+    }
     const userData = getLoggedInUser()
     console.debug(`[WS] Opening WebSocket for group ${groupId}`)
-    console.debug(`[WS] Already present websockets:`, trackingWebsockets)
-    const ws = new WebSocket(
-      `ws://localhost:3000/ws/location/${groupId}/${userData.id}`
-    )
+    const ws = new WebSocket(`${BACKEND_ENDPOINT}/ws/location/${groupId}/${userData.id}`)
+    trackingWebsockets[groupId] = { connection: ws, isConnected: false }
     ws.onopen = async () => {
       console.debug(`[WS] WebSocket connected for group ${groupId}`)
       console.debug("[WS] Authenticating WebSocket")
@@ -260,23 +273,18 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
     const userData = getLoggedInUser()
     console.debug(`[WS] Opening WebSocket for group ${groupId}`)
     console.debug(`[WS] Already present websockets:`, chatWebsockets)
-    const ws = new WebSocket(
-      `ws://localhost:3000/ws/chat/${groupId}/${userData.id}`
-    )
-
+    const ws = new WebSocket(`${BACKEND_ENDPOINT}/ws/chat/${groupId}/${userData.id}`)
     ws.onopen = async () => {
       console.debug(`[WS] WebSocket connected for group ${groupId}`)
       console.debug("[WS] Authenticating WebSocket")
       ws.send(JSON.stringify({ Authorization: `Bearer ${getToken()}` }))
     }
-
     ws.onclose = () => {
       console.debug(`[WS] WebSocket disconnected for group ${groupId}`)
       if (chatWebsockets[groupId]) {
         closeTrackingWebSocket(groupId)
       }
     }
-
     ws.onmessage = (message) => {
       console.debug(`[WS] WebSocket message for group ${groupId}:`, message.data)
       if (message.data === "OK") {
@@ -386,6 +394,7 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
     isLoading,
     error,
     sosActive,
+    sendToGroup,
     broadcastSOS,
     stopSOS,
     fetchUserGroups,

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import axios from 'axios'
 
 export const useGroupMapStore = defineStore('groupMap', () => {
@@ -15,7 +15,8 @@ export const useGroupMapStore = defineStore('groupMap', () => {
       const userInfo = sessions.value[user.id]
       return {
         id: user.id,
-        name: `${user.name} ${user.surname}`,
+        name: user.name,
+        surname: user.surname,
         state: userInfo?.state || 'INACTIVE',
         lastSeen: userInfo?.lastSeen,
         location: userInfo?.location,
@@ -39,8 +40,9 @@ export const useGroupMapStore = defineStore('groupMap', () => {
     }
   })
 
-  function setCurrentGroupId(id) {
+  async function setCurrentGroupId(id) {
     resetStore()
+    await nextTick()
     groupId.value = id
   }
 
