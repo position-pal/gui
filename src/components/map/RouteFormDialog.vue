@@ -112,10 +112,7 @@ function searchAddresses() {
 
 async function fetchAddresses() {
   try {
-    suggestions.value = await fetchCoordinates(destinationQuery.value, {
-      limit: 5,
-      language: 'en',
-    })
+    suggestions.value = await fetchCoordinates(destinationQuery.value, { limit: 5 })
     console.debug("Fetched addresses", suggestions.value)
   } catch (error) {
     console.error('Failed to fetch addresses', error);

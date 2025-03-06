@@ -1,4 +1,4 @@
-const MAPBOX_ACCESS_TOKEN = '';
+import { MAPBOX_API_KEY } from '@/config.js'
 
 /**
  * Fetch coordinates from an address query using Mapbox Geocoding API
@@ -12,10 +12,10 @@ export const fetchCoordinates = async (query, options = {}) => {
       limit = 5,
       language = 'en',
       country = '',
-      types = '',
+      types = 'address',
     } = options;
     const params = new URLSearchParams({
-      access_token: MAPBOX_ACCESS_TOKEN,
+      access_token: MAPBOX_API_KEY,
       limit,
       language
     });
@@ -51,7 +51,7 @@ export const getAddressFromCoordinates = async (latitude, longitude, options = {
     } = options;
     // Build query parameters
     const params = new URLSearchParams({
-      access_token: MAPBOX_ACCESS_TOKEN,
+      access_token: MAPBOX_API_KEY,
       language,
       types
     });

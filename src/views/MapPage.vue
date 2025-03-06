@@ -23,7 +23,7 @@
           Location sharing is OFF
         </p>
         <p v-if="isRoutingEnabled">
-          , you are in routing mode!
+          You are routing to a destination.
         </p>
       </div>
       <button
@@ -71,7 +71,6 @@
         </svg>
         <svg
           v-else
-          xmlns="http://www.w3.org/2000/svg"
           width="24"
           height="24"
           viewBox="0 0 24 24"
@@ -81,8 +80,13 @@
           stroke-linecap="round"
           stroke-linejoin="round"
         >
-          <path d="M4 4v16" />
-          <path d="M4 4c4 0 8 2 12 2v8c-4 0-8 2-12 2" />
+          <path d="M19 12H5" />
+          <path d="M12 5c-2.5 3-4 6-4 7 0 4 3.5 8 8 6 1.5-.5 2-1.5 2-2s-1-2-1-3.5c0-2 2-5.5 2-5.5" />
+          <path d="M12 19c-2-1-3.5-4.5-3.5-6.5 0-3 1.5-6.5 3.5-8" />
+          <path
+            class="flag"
+            d="M22 5l-4 2 4 2V5z"
+          />
         </svg>
       </button>
     </div>
@@ -158,7 +162,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
 import { useGroupMapStore } from '@/stores/groupMapStore.js'
 import { useUserGroupsStore } from '@/stores/userGroupsStore.js'
 import { useRoute } from 'vue-router'
@@ -177,7 +181,7 @@ const groupId = route.params.groupId;
 const minHeight = 80;
 const containerHeight = ref(300);
 const isMinimized = ref(false);
-const defaultHeight = 300;
+let defaultHeight = 300;
 const showRouteForm = ref(false);
 const showStopRoutingDialog = ref(false);
 const mapContainer = ref(null);
@@ -188,8 +192,20 @@ const isLocationSharingEnabled = computed(() =>
 )
 const isRoutingEnabled = computed(() =>
   mapStore.usersInfo.find(u => u.id === userId)?.state === "ROUTING" ||
-    mapStore.usersInfo.find(u => u.id === userId)?.state === "WARNING" || false
+  mapStore.usersInfo.find(u => u.id === userId)?.state === "WARNING" || false
 )
+
+const adjustContainerHeight = () => {
+  const tabBarHeight = 56;
+  const availableHeight = window.innerHeight;
+  if (!isMinimized.value) {
+    defaultHeight = Math.min(
+      Math.max(300, (availableHeight - tabBarHeight) * 0.4),
+      (availableHeight - tabBarHeight) * 0.7
+    );
+    containerHeight.value = defaultHeight;
+  }
+};
 
 const minimize = () => {
   if (!isMinimized.value) {
@@ -257,6 +273,12 @@ async function toggleLocationSharing() {
 onMounted(async () => {
   await mapStore.setCurrentGroupId(groupId);
   await userGroupsStore.fetchUserGroups();
+  adjustContainerHeight();
+  window.addEventListener('resize', adjustContainerHeight);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', adjustContainerHeight);
 });
 </script>
 
@@ -265,6 +287,7 @@ onMounted(async () => {
   position: relative;
   height: 100%;
   width: 100%;
+  overflow: hidden;
 }
 
 .list-container {
@@ -276,9 +299,9 @@ onMounted(async () => {
   padding: 15px;
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
-  overflow: hidden;
   box-shadow: 0px -4px 10px rgba(0, 0, 0, 0.2);
-  transition: height 0.3s ease;
+  transition: height 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+  z-index: 10;
 }
 
 .toggle-button {
@@ -292,7 +315,7 @@ onMounted(async () => {
 }
 
 .arrow {
-  transition: transform 0.3s ease;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   color: #666;
 }
 
@@ -302,7 +325,8 @@ onMounted(async () => {
 
 .content-wrapper {
   overflow-y: auto;
-  height: calc(100% - 50px);
+  height: calc(100% - 40px);
+  -webkit-overflow-scrolling: touch;
 }
 
 .minimized {
@@ -322,14 +346,13 @@ onMounted(async () => {
 /* Fab */
 .fab-container {
   position: absolute;
-  top: 95px;
+  top: 12px;
   right: 20px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  z-index: 1000;
+  z-index: 5;
   align-items: flex-end;
-  transform: translateY(-50%);
 }
 
 .route-fab, .location-fab {
@@ -338,17 +361,21 @@ onMounted(async () => {
   border-radius: 50%;
   background: white;
   border: none;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .route-fab:hover, .location-fab:hover {
-  transform: scale(1.05);
+  transform: scale(1.08);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.route-fab:active, .location-fab:active {
+  transform: scale(0.95);
 }
 
 .route-fab svg, .location-fab svg {
@@ -370,6 +397,7 @@ onMounted(async () => {
   background-color: #4CAF50;
   animation: pulseAnim 2s ease-out infinite;
   z-index: -1;
+  opacity: 0.7;
 }
 
 .location-fab.active svg {
@@ -388,32 +416,38 @@ onMounted(async () => {
   height: 100%;
   border-radius: 50%;
   background-color: #8063d2;
-  animation: wave 0.5s infinite ease-in-out;
+  animation: routeWave 1.5s infinite cubic-bezier(0.45, 0.05, 0.55, 0.95);
   z-index: -1;
 }
 
 .route-fab.active svg {
   color: white;
+  animation: routeIconFloat 3s infinite ease-in-out;
 }
 
 .tracking-status {
   position: relative;
   font-size: 12px;
-  padding: 5px 10px;
-  background: gray;
+  padding: 8px 12px;
+  background: rgba(100, 100, 100, 0.85);
   color: white;
-  border-radius: 10px;
+  border-radius: 12px;
   transition: all 0.3s ease;
-  z-index: 1000;
-  align-self: center;
+  z-index: 5;
+  align-self: flex-end;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  margin-right: 5px;
+  backdrop-filter: blur(2px);
+  max-width: 300px;
 }
 
 .tracking-status.active {
-  background: #4CAF50;
+  background: rgba(76, 175, 80, 0.85);
 }
 
 .tracking-status p {
   margin: 0;
+  font-weight: 500;
 }
 
 @keyframes pulseAnim {
@@ -431,9 +465,27 @@ onMounted(async () => {
   }
 }
 
-@keyframes wave {
-  0%, 100% { transform: translateX(0); }
-  50% { transform: translateX(2px) rotate(2deg); }
+@keyframes routeWave {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.4;
+  }
+}
+
+@keyframes routeIconFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-3px) rotate(-5deg);
+  }
+  60% {
+    transform: translateY(-3px) rotate(5deg);
+  }
 }
 
 /* Dialog styles */
@@ -447,45 +499,60 @@ onMounted(async () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 2000;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
 }
 
 .dialog-content {
   background: white;
-  border-radius: 10px;
-  padding: 20px;
+  border-radius: 12px;
+  padding: 24px;
   width: 90%;
   max-width: 400px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
 }
 
 .dialog-content h3 {
   margin-top: 0;
   color: #333;
+  font-size: 20px;
 }
 
 .dialog-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
+  gap: 12px;
+  margin-top: 24px;
 }
 
 .cancel-button {
-  padding: 8px 16px;
+  padding: 10px 16px;
   border: 1px solid #ddd;
   background: white;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.cancel-button:hover {
+  background: #f5f5f5;
 }
 
 .confirm-button {
-  padding: 8px 16px;
+  padding: 10px 16px;
   background: #f44336;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.confirm-button:hover {
+  background: #d32f2f;
+  transform: translateY(-1px);
 }
 
 /* Scrollbar Styles */
