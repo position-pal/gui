@@ -163,8 +163,7 @@ const closeRouteForm = () => {
   showRouteForm.value = false;
 };
 
-const handleRouteSubmit = (formData) => {
-  console.log('Route submitted:', formData); // TODO: Implement route sharing
+const handleRouteSubmit = () => {
   closeRouteForm();
 };
 
@@ -174,7 +173,7 @@ async function toggleLocationSharing() {
 }
 
 onMounted(async () => {
-  mapStore.setCurrentGroupId(groupId);
+  await mapStore.setCurrentGroupId(groupId);
   await userGroupsStore.fetchUserGroups();
 });
 </script>

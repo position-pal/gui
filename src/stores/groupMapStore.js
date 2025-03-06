@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import axios from 'axios'
 
 export const useGroupMapStore = defineStore('groupMap', () => {
@@ -40,8 +40,9 @@ export const useGroupMapStore = defineStore('groupMap', () => {
     }
   })
 
-  function setCurrentGroupId(id) {
+  async function setCurrentGroupId(id) {
     resetStore()
+    await nextTick()
     groupId.value = id
   }
 

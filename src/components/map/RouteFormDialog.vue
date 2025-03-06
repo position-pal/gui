@@ -81,6 +81,7 @@ import { useGroupMapStore } from '@/stores/groupMapStore.js'
 import { formatToISO } from '@/scripts/utils.js'
 import { useLocationStore } from '@/stores/locationStore.js'
 import { fetchCoordinates } from '@/scripts/geo.js'
+import { getLoggedInUser } from '@/scripts/user.js'
 
 const emit = defineEmits(['close', 'submit'])
 const userGroupsStore = useUserGroupsStore()
@@ -93,6 +94,7 @@ const suggestions = ref([])
 const selectedAddress = ref(null)
 const error = ref('')
 let searchTimeout = null
+const userId = getLoggedInUser().id
 const groupId = groupMapStore.groupId
 
 function searchAddresses() {
@@ -110,11 +112,10 @@ function searchAddresses() {
 
 async function fetchAddresses() {
   try {
-    const results = await fetchCoordinates(destinationQuery.value, {
+    suggestions.value = await fetchCoordinates(destinationQuery.value, {
       limit: 5,
       language: 'en',
     })
-    suggestions.value = results
     console.debug("Fetched addresses", suggestions.value)
   } catch (error) {
     console.error('Failed to fetch addresses', error);
@@ -157,7 +158,7 @@ async function submitForm() {
   emit('submit', { destination: selectedAddress.value, arrivalTime: arrivalTime.value })
   const destination = {
     name: selectedAddress.value.display_name,
-    location: {
+    position: {
       latitude: selectedAddress.value.lat,
       longitude: selectedAddress.value.lon
     }
@@ -166,9 +167,9 @@ async function submitForm() {
   console.debug("Route towards", destination, " - ETA:", eta)
   const routingStartedEvent = {
     RoutingStarted: {
-      timestamp: "2019-08-24T14:15:22Z",
-      user: "string",
-      group: "string",
+      timestamp: new Date().toISOString(),
+      user: userId,
+      group: groupId,
       position: currentLocation,
       mode: "Walking",
       destination: destination,
