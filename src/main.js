@@ -11,11 +11,25 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import 'bootstrap';
 
+import { initializeApp } from 'firebase/app'
+import firebaseData from '../src/firebase-config.json'
+
+const firebaseConfig = {
+  apiKey: firebaseData.credentials.apiKey,
+  authDomain: firebaseData.credentials.authDomain,
+  projectId: firebaseData.credentials.projectId,
+  storageBucket: firebaseData.credentials.storageBucket,
+  messagingSenderId: firebaseData.credentials.messagingSenderId,
+  appId: firebaseData.credentials.appId
+}
+
+initializeApp(firebaseConfig)
+
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('public/firebase-messaging-sw.js')
+  navigator.serviceWorker.register('/firebase-messaging-sw.js')
     .catch((error) => {
-      console.error('Service Worker registration fail:', error)
-    })
+      console.log('Registrazione Service Worker fallita:', error);
+    });
 }
 
 const app = createApp(App)
