@@ -23,12 +23,20 @@ const firebaseConfig = {
   appId: firebaseData.credentials.appId
 }
 
+caches.open('firebase-config-cache').then(cache => {
+  cache.put(
+    new Request('/firebase-config'),
+    new Response(JSON.stringify(firebaseConfig))
+  );
+});
+
 initializeApp(firebaseConfig)
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/firebase-messaging-sw.js')
+    .then((res) => console.log(res))
     .catch((error) => {
-      console.log('Registrazione Service Worker fallita:', error);
+      console.log('Service worker registration failed:', error);
     });
 }
 
