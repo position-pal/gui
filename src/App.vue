@@ -25,10 +25,17 @@ export default {
 </script>
 
 <style>
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* Avoid horizontal scrollbars */
+  overflow-y: hidden; /* Avoid vertical scrollbars */
+}
+
 .app-wrapper {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100dvh;
 }
 
 .main-content {
