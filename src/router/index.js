@@ -27,7 +27,7 @@ const routes = [{
     props: true,
   },
   {
-    path: '/chat',
+    path: '/chat/:groupId',
     name: 'Chat',
     component: ChatPage,
   },
