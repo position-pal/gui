@@ -1,5 +1,6 @@
 <template>
   <div class="app-wrapper">
+    <NotificationComponent ref="notificationBanner" />
     <main class="main-content">
       <router-view />
     </main>
@@ -9,10 +10,17 @@
 
 <script>
 import TabBar from './components/TabBar.vue'
+import NotificationComponent from './components/NotificationComponent.vue'
+import { setupForegroundNotifications } from '@/scripts/firebase-notifications.js'
 
 export default {
   name: 'App',
-  components: { TabBar },
+  components: { TabBar, NotificationComponent },
+  mounted() {
+    this.$nextTick(() => {
+      setupForegroundNotifications(this.$refs.notificationBanner)
+    })
+  }
 }
 </script>
 

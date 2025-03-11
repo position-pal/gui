@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { deleteNotificationToken } from '@/scripts/firebase-notifications.js'
 
 function getToken() {
   return sessionStorage.getItem('authToken')
@@ -12,7 +13,19 @@ function isTestUser() {
   return getLoggedInUser().name === 'Test'
 }
 
-function logout() {
+async function logout() {
+  const userId = getLoggedInUser().id
+  try {
+    await deleteNotificationToken(userId)
+    if ('serviceWorker' in navigator) {
+      const registration = await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js')
+      if (registration) {
+        await registration.unregister()
+      }
+    }
+  } catch (error) {
+    console.error('Error during logout:', error)
+  }
   sessionStorage.removeItem('authToken')
   sessionStorage.removeItem('userData')
 }
