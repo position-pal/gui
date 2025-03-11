@@ -19,7 +19,10 @@
         >{{ localUser.state }}</span>
       </h4>
       <p v-if="localUser.lastSeen">
-        {{ address }} • {{ localUser.lastSeen }}
+        {{ address }}
+      </p>
+      <p v-if="localUser.lastSeen">
+        Last update: {{ localUser.lastSeen }}
       </p>
     </div>
     <div class="distance info-badge">

@@ -50,7 +50,7 @@ export function setupForegroundNotifications(notificationComponent) {
   onMessage(messaging, (payload) => {
     notificationComponent.show({
       title: payload.notification.title,
-      body: payload.notification.body
+      body: payload.data.body
     })
   })
 }

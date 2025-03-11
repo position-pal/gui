@@ -36,7 +36,6 @@ export default {
     show(notification) {
       this.notification = notification
       this.showNotification = true
-
       if (this.timeoutId) clearTimeout(this.timeoutId)
       this.timeoutId = setTimeout(() => {
         this.hideNotification()
