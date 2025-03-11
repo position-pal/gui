@@ -1,16 +1,14 @@
 import { initializeApp } from 'firebase/app'
 import { getMessaging, getToken, onMessage, deleteToken } from 'firebase/messaging'
 import axios from 'axios'
-import firebaseData from '../firebase-config.json'
-
 
 const firebaseConfig = {
-  apiKey: firebaseData.credentials.apiKey,
-  authDomain: firebaseData.credentials.authDomain,
-  projectId: firebaseData.credentials.projectId,
-  storageBucket: firebaseData.credentials.storageBucket,
-  messagingSenderId: firebaseData.credentials.messagingSenderId,
-  appId: firebaseData.credentials.appId
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 }
 
 const app = initializeApp(firebaseConfig)
@@ -21,7 +19,7 @@ export async function askForNotificationPermission(userId) {
     const permission = await Notification.requestPermission()
     if (permission === 'granted') {
       const token = await getToken(messaging, {
-        vapidKey: firebaseData.vapidKey
+        vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY
       })
 
       await saveTokenToBackend(userId, token)
@@ -36,7 +34,7 @@ export async function askForNotificationPermission(userId) {
 export async function deleteNotificationToken(userId) {
   try {
     const token = await getToken(messaging, {
-      vapidKey: firebaseData.vapidKey
+      vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY
     })
     if (token) {
       await axios.post("api/notifications/invalidate", { user: userId, token: token })
