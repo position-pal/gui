@@ -21,9 +21,7 @@ export async function askForNotificationPermission(userId) {
       const token = await getToken(messaging, {
         vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY
       })
-
       await saveTokenToBackend(userId, token)
-
       return token
     }
   } catch (error) {
@@ -45,13 +43,12 @@ export async function deleteNotificationToken(userId) {
   }
 }
 
-
 export function setupForegroundNotifications(notificationComponent) {
   onMessage(messaging, (payload) => {
     notificationComponent.show({
       title: payload.notification.title,
       body: payload.data.body
-    })
+    }, { reloadOnClose: true })
   })
 }
 

@@ -24,27 +24,41 @@
 </template>
 
 <script>
+import { useGroupMapStore } from '@/stores/groupMapStore.js'
+
 export default {
   data() {
     return {
       notification: null,
       showNotification: false,
-      timeoutId: null
+      timeoutId: null,
+      reloadOnClose: false,
+      mapStore: null,
     }
   },
+  created() {
+    this.mapStore = useGroupMapStore()
+  },
   methods: {
-    show(notification) {
+    show(notification, options = {}) {
       this.notification = notification
       this.showNotification = true
-      if (this.timeoutId) clearTimeout(this.timeoutId)
+      this.reloadOnClose = options.reloadOnClose || false
+      if (this.timeoutId) {
+        clearTimeout(this.timeoutId)
+      }
       this.timeoutId = setTimeout(() => {
         this.hideNotification()
-      }, 5000)
+      }, options.timeout || 10_000)
     },
     hideNotification() {
       this.showNotification = false
       setTimeout(() => {
         this.notification = null
+        if (this.reloadOnClose) {
+          console.debug("Reloading group sessions")
+          this.mapStore.fetchGroupSessions()
+        }
       }, 300)
     }
   }

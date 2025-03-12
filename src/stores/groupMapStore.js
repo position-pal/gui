@@ -21,6 +21,7 @@ export const useGroupMapStore = defineStore('groupMap', () => {
         lastSeen: userInfo?.lastSeen,
         location: userInfo?.location,
         tracking: userInfo?.tracking,
+        routeInfo: userInfo?.routeInfo,
       }
     })
   })
@@ -80,6 +81,12 @@ export const useGroupMapStore = defineStore('groupMap', () => {
             location: loc.location,
             timestamp: new Date(parseInt(loc.timestamp.seconds) * 1_000).toLocaleString()
           })),
+          routeInfo: session.activeTracking ? {
+            destination: session.activeTracking.destination?.name || null,
+            eta: session.activeTracking.eta
+              ? new Date(parseInt(session.activeTracking.eta.seconds) * 1_000).toLocaleString()
+              : null
+          } : null,
         }
         return acc
       }, {})

@@ -11,10 +11,16 @@ export const useLocationStore = defineStore('location', () => {
   const updateInterval = ref(null)
   const listeners = ref([])
   const error = ref(null)
+  const retryCount = ref(0)
+  const maxRetries = ref(10)
+  const retryTimeout = ref(null)
+  // Store the last used options so we can reuse them when retrying
+  const lastOptions = ref(null);
 
   const DEFAULT_UPDATE_INTERVAL = 10_000 // 10 secs
   const MIN_UPDATE_INTERVAL = 1_000 // 1 sec
   const DEFAULT_DISTANCE_FILTER = 1 // 1 meter
+  const RETRY_DELAY = 4_000 // 4 secs
 
   const hasLocation = computed(() => !!currentPosition.value)
 
@@ -28,6 +34,7 @@ export const useLocationStore = defineStore('location', () => {
       timestamp: new Date().toISOString()
     }
     currentPosition.value = newPosition
+    retryCount.value = 0
     notifyListeners(newPosition)
   }
 
@@ -66,8 +73,29 @@ export const useLocationStore = defineStore('location', () => {
   }
 
   const handleError = (err) => {
-    error.value = err.message
-    isTracking.value = false
+    const isLocationUnknownError =
+      err.code === 2 || // Standard JS Geolocation error code for POSITION_UNAVAILABLE
+      err.message.includes('kCLErrorLocationUnknown') || // macOS specific error message
+      err.message.includes('location unknown'); // Generic check
+    if (isLocationUnknownError && retryCount.value < maxRetries.value) {
+      console.warn(`[Location] Temporary location error (${err.message}). Retrying... (${retryCount.value + 1}/${maxRetries.value})`);
+      retryCount.value++;
+      if (retryTimeout.value) {
+        clearTimeout(retryTimeout.value);
+      }
+      retryTimeout.value = setTimeout(() => {
+        if (isTracking.value) {
+          stopTracking(false); // Don't reset isTracking flag
+          startTracking(lastOptions.value);
+        }
+      }, RETRY_DELAY);
+      error.value = `Your location could not be determined. Retrying... (${retryCount.value}/${maxRetries.value})`;
+    } else {
+      // For other errors or if we've exhausted retries
+      console.error(`[Location] Error: ${err.message}`);
+      error.value = err.message;
+      isTracking.value = false;
+    }
   }
 
   const startTracking = (options = {}) => {
@@ -79,24 +107,24 @@ export const useLocationStore = defineStore('location', () => {
       error.value = "Geolocation is not supported by your browser"
       return
     }
-    const {
-      updateInterval: intervalTime = DEFAULT_UPDATE_INTERVAL,
-      distanceFilter = DEFAULT_DISTANCE_FILTER,
-      enableHighAccuracy = true,
-      timeout = 8_000
-    } = options
-    console.log("[Location] Start tracking with options: ", options)
-    isTracking.value = true
+    lastOptions.value = {
+      updateInterval: options.updateInterval || DEFAULT_UPDATE_INTERVAL,
+      distanceFilter: options.distanceFilter || DEFAULT_DISTANCE_FILTER,
+      enableHighAccuracy: options.enableHighAccuracy !== undefined ? options.enableHighAccuracy : true,
+      timeout: options.timeout || 10_000
+    };
+    console.log("[Location] Start tracking with options: ", lastOptions.value)
+    isTracking.value = true;
     watchId.value = navigator.geolocation.watchPosition(
       updatePosition,
       handleError,
       {
-        enableHighAccuracy,
-        timeout,
-        distanceFilter
+        enableHighAccuracy: lastOptions.value.enableHighAccuracy,
+        timeout: lastOptions.value.timeout,
+        distanceFilter: lastOptions.value.distanceFilter
       }
     )
-    startUpdateInterval(intervalTime)
+    startUpdateInterval(lastOptions.value.updateInterval)
   }
 
   const startUpdateInterval = (interval = DEFAULT_UPDATE_INTERVAL) => {
@@ -116,7 +144,7 @@ export const useLocationStore = defineStore('location', () => {
     }
   }
 
-  const stopTracking = () => {
+  const stopTracking = (resetTrackingState = true) => {
     if (watchId.value) {
       navigator.geolocation.clearWatch(watchId.value)
       watchId.value = null
@@ -125,7 +153,14 @@ export const useLocationStore = defineStore('location', () => {
       clearInterval(updateInterval.value)
       updateInterval.value = null
     }
-    isTracking.value = false
+    if (retryTimeout.value) {
+      clearTimeout(retryTimeout.value)
+      retryTimeout.value = null
+    }
+    if (resetTrackingState) {
+      isTracking.value = false
+      retryCount.value = 0
+    }
   }
 
   const calculateDistance = (targetCoords) => {

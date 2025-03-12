@@ -24,6 +24,11 @@
       <p v-if="localUser.lastSeen">
         Last update: {{ localUser.lastSeen }}
       </p>
+      <p v-if="(localUser.state === 'ROUTING' || localUser.state === 'SOS') && localUser.routeInfo && localUser.routeInfo.destination">
+        <strong>
+          Destination: {{ localUser.routeInfo.destination }} &bull; ETA: {{ localUser.routeInfo.eta }}
+        </strong>
+      </p>
     </div>
     <div class="distance info-badge">
       {{ distance }} km
