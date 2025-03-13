@@ -83,15 +83,15 @@ jobs:
           name: website-build
           path: build.tar.gz
           retention-days: 1
-      
+      - name: Install sshpass
+        run: sudo apt-get update && sudo apt-get install -y sshpass
+        
       - name: Deploy to DigitalOcean
-        uses: garygrossgarten/github-action-scp@release
-        with:
-          local: build.tar.gz
-          remote: /tmp/build.tar.gz
-          host: ${{ secrets.DROPLET_HOST }}
-          username: ${{ secrets.DROPLET_USERNAME }}
-          password: ${{ secrets.DROPLET_PASSWORD }}
+        run: |
+          scp -o StrictHostKeyChecking=no build.tar.gz ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_HOST }}:/tmp/build.tar.gz
+        env:
+          SSHPASS: ${{ secrets.DROPLET_PASSWORD }}
+        shell: bash
       
       - name: Extract and deploy on Droplet
         uses: appleboy/ssh-action@master
