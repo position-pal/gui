@@ -25,93 +25,78 @@ jobs:
         run: npm run build
       - name: Lint
         run: npm run lint
-
-#  dry-delivery:
-#    needs: build
-#    runs-on: ubuntu-24.04
-#    steps:
-#      - name: Checkout repository
-#        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-#      - name: Set up QEMU
-#        uses: docker/setup-qemu-action@4574d27a4764455b42196d70a065bc6853246a25 # v3
-#      - name: Set up Docker Buildx
-#        uses: docker/setup-buildx-action@f7ce87c1d6bead3e36075b2ce75da1f6cc28aaca # v3
-#      - name: Build multi-platform dockerfile
-#        run: docker buildx build --platform linux/amd64,linux/arm64 .
-
-#  release:
-#    needs: dry-delivery
-#    if: github.ref_name == github.event.repository.default_branch
-#    permissions: # Not specified scopes are set to `none`!
-#      packages: write
-#      contents: write
-#      issues: write
-#      pull-requests: write
-#    concurrency:
-#      group: release-and-delivery-${{ github.event.number || github.ref }}
-#    runs-on: ubuntu-24.04
-#    outputs: # see release.config.js
-#      release-status: ${{ env.RELEASE_STATUS }}
-#      release_version: ${{ env.RELEASE_VERSION }}
-#    steps:
-#      - name: Checkout repository
-#        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-#        with:
-#          submodules: recursive
-#          fetch-depth: 0
-#          fetch-tags: true
-#      - name: Find the version of Node from package.json
-#        id: node-version
-#        run: echo "version=$(jq -r .engines.node package.json)" >> $GITHUB_OUTPUT
-#      - name: Install Node
-#        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
-#        with:
-#          node-version: ${{ steps.node-version.outputs.version }}
-#      - name: Release
-#        run: |
-#          npm install
-#          npx semantic-release
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.POSITION_PAL_BOT_TOKEN }}
-
-#  publish-images:
-#    needs:
-#      - release
-#    # Trigger this job only if the semantic release bot has released a new version
-#    if: ${{ needs.release.outputs.release-status == 'released' }}
-#    runs-on: ubuntu-24.04
-#    permissions:
-#      contents: read
-#      packages: write
-#    steps:
-#      - name: Checkout repository
-#        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-#      - name: Login to Docker Hub
-#        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3
-#        with:
-#          username: ${{ secrets.DOCKERHUB_USERNAME }}
-#          password: ${{ secrets.DOCKERHUB_TOKEN }}
-#      - name: Set up QEMU
-#        uses: docker/setup-qemu-action@4574d27a4764455b42196d70a065bc6853246a25 # v3
-#      - name: Set up Docker Buildx
-#        uses: docker/setup-buildx-action@f7ce87c1d6bead3e36075b2ce75da1f6cc28aaca # v3
-#      - name: Build and push
-#        uses: docker/build-push-action@0adf9959216b96bec444f325f1e493d4aa344497 # v6
-#        with:
-#          context: .
-#          file: ./Dockerfile
-#          push: true
-#          platforms: linux/amd64,linux/arm64
-#          tags: |
-#            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:latest
-#            ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}:${{ needs.release.outputs.release_version }}
-
+  
+  release:
+    needs: build
+    if: github.ref_name == github.event.repository.default_branch
+    permissions:
+      packages: write
+      contents: write
+      issues: write
+      pull-requests: write
+    concurrency:
+      group: release-${{ github.event.number || github.ref }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - name: Set up Node
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4
+        with:
+          node-version: 23
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm install
+      
+      - name: Build website
+        run: npm run build
+        env:
+          VITE_BACKEND_ENDPOINT: ${{ vars.BACKEND_ENDPOINT }}
+          VITE_MAPBOX_API_KEY: ${{ secrets.MAPBOX_API_KEY }}
+          VITE_FIREBASE_VAPID_KEY: ${{ secrets.FIREBASE_VAPID_KEY }}
+          VITE_FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+      
+      - name: Create artifact
+        run: tar -czf build.tar.gz -C dist .
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: website-build
+          path: build.tar.gz
+          retention-days: 1
+          
+      - name: Install sshpass
+        run: sudo apt-get update && sudo apt-get install -y sshpass
+        
+      - name: Deploy to DigitalOcean
+        env:
+          SSHPASS: ${{ secrets.DROPLET_PASSWORD }}
+        run: |
+          sshpass -e scp -o StrictHostKeyChecking=no build.tar.gz ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_HOST }}:/tmp/build.tar.gz
+      
+      - name: Extract and deploy on Droplet
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DROPLET_HOST }}
+          username: ${{ secrets.DROPLET_USERNAME }}
+          password: ${{ secrets.DROPLET_PASSWORD }}
+          port: 22
+          script: |
+            mkdir -p /var/www/html
+            tar -xzf /tmp/build.tar.gz -C /var/www/html
+            rm /tmp/build.tar.gz
+      
   success:
     needs:
       - build
-      #- dry-delivery
-      #- release
-      #- publish-images
+      - release
     if:
       >- # run if at least one needed job has failed or all needed jobs have not been cancelled
       always() && (
