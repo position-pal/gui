@@ -49,7 +49,7 @@ export default {
       }
       this.timeoutId = setTimeout(() => {
         this.hideNotification()
-      }, options.timeout || 10_000)
+      }, options.timeout || 8_000)
     },
     hideNotification() {
       this.showNotification = false
