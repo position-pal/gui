@@ -104,4 +104,40 @@ export default {
 .text-container h1 {
   font-family: 'Playlist Script';
 }
+
+@media (max-width: 768px) {
+  .text-container {
+    font-size: 48px;
+  }
+
+  .text-container h1 {
+    font-size: 48px;
+  }
+
+  .text-container h5 {
+    font-size: 24px;
+  }
+
+  .btn {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .text-container {
+    font-size: 32px;
+  }
+
+  .text-container h1 {
+    font-size: 32px;
+  }
+
+  .text-container h5 {
+    font-size: 18px;
+  }
+
+  .btn {
+    font-size: 16px;
+  }
+}
 </style>
