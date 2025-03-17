@@ -28,7 +28,7 @@ jobs:
   
   release:
     needs: build
-    if: github.ref_name == github.event.repository.default_branch
+    if: github.ref_name == github.event.repository.default_branch && !github.event.repository.fork
     permissions:
       packages: write
       contents: write
@@ -45,10 +45,8 @@ jobs:
         with:
           node-version: 23
           cache: 'npm'
-      
       - name: Install dependencies
         run: npm install
-      
       - name: Build website
         run: npm run build
         env:
@@ -61,26 +59,21 @@ jobs:
           VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
           VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
           VITE_FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
-      
       - name: Create artifact
         run: tar -czf build.tar.gz -C dist .
-      
       - name: Upload artifact
         uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
         with:
           name: website-build
           path: build.tar.gz
           retention-days: 1
-          
       - name: Install sshpass
         run: sudo apt-get update && sudo apt-get install -y sshpass
-        
       - name: Deploy to DigitalOcean
         env:
           SSHPASS: ${{ secrets.DROPLET_PASSWORD }}
         run: |
           sshpass -e scp -o StrictHostKeyChecking=no build.tar.gz ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_HOST }}:/tmp/build.tar.gz
-      
       - name: Extract and deploy on Droplet
         uses: appleboy/ssh-action@master
         with:
