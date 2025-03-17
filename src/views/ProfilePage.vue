@@ -216,12 +216,12 @@ export default {
         alert('Failed to update password');
       }
     },
-    logout() {
+    async logout() {
       this.isLoggingOut = true
-      setTimeout(() => {
-        this.isLoggingOut = false
-        logout()
-        router.push('/')
+      this.isLoggingOut = false
+      await logout();
+      setTimeout(async () => {
+        await router.push('/')
       }, 1000)
     },
   },

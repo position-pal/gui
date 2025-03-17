@@ -376,6 +376,10 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
     }
   }
 
+  function cleanAllGroups() {
+    groups.value = [];
+  }
+
   function cleanup() {
     sosActive.value = false
     pendingSosGroups.value = []
@@ -401,6 +405,7 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
     addGroupMessageListener,
     toggleGroupTracking,
     sendChatMessage,
-    cleanup
+    cleanup,
+    cleanAllGroups
   }
 })

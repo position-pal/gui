@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { deleteNotificationToken } from '@/scripts/firebase-notifications.js'
+import {useUserGroupsStore} from '@/stores/userGroupsStore.js'
 
 function getToken() {
   return sessionStorage.getItem('authToken')
@@ -15,6 +16,7 @@ function isTestUser() {
 
 async function logout() {
   const userId = getLoggedInUser().id
+  useUserGroupsStore().cleanAllGroups()
   try {
     await deleteNotificationToken(userId)
     if ('serviceWorker' in navigator) {
