@@ -65,7 +65,7 @@ router.beforeEach((to, from, next) => {
   if (to.matched.some(record => record.meta.requiresAuth)) {
     const user = getLoggedInUser();
     if (!user) {
-      next({ name: 'LoginPage' });
+      next({ name: 'Login' });
     } else {
       next();
     }
