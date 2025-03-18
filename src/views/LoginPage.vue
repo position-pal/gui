@@ -207,6 +207,9 @@ export default {
 
     const handleRegister = async () => {
      if(await registerAndLogin(registerData.value.name, registerData.value.surname, registerData.value.email, registerData.value.password)){
+       if ('Notification' in window) {
+         await askForNotificationPermission(getLoggedInUser().id)
+       }
        await router.push('/')
      } else {
        alert('Registration failed')
