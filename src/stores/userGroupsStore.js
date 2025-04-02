@@ -111,10 +111,7 @@ export const useUserGroupsStore = defineStore('userGroups', () => {
       }
     })
     if (!locationUnsubscribe) {
-      locationStore.startTracking({
-        updateInterval: 5_000, // More frequent updates during SOS
-        enableHighAccuracy: true
-      })
+      locationStore.startTracking()
       locationUnsubscribe = locationStore.addLocationListener(broadcastLocation)
     }
   }

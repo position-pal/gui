@@ -48,7 +48,7 @@ export function setupForegroundNotifications(notificationComponent) {
     notificationComponent.show({
       title: payload.notification.title,
       body: payload.data.body
-    }, { reloadOnClose: true })
+    })
   })
 }
 

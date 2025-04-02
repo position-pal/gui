@@ -132,6 +132,7 @@ export const useLocationStore = defineStore('location', () => {
     const safeInterval = Math.max(interval, MIN_UPDATE_INTERVAL)
     updateInterval.value = setInterval(() => {
       if (currentPosition.value) {
+        currentPosition.value = { ...currentPosition.value, timestamp: new Date().toISOString() };
         notifyListeners(currentPosition.value)
       }
     }, safeInterval)
