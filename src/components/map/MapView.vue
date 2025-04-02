@@ -16,6 +16,8 @@ import { useGroupMapStore } from '@/stores/groupMapStore.js'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { storeToRefs } from 'pinia'
+import markerIconPng from "leaflet/dist/images/marker-icon.png";
+import markerShadowPng from "leaflet/dist/images/marker-shadow.png";
 
 const groupStore = useGroupMapStore()
 const { selection, usersInfo } = storeToRefs(groupStore)
@@ -65,9 +67,14 @@ function updateMarkers() {
       markers.value[user.id].setLatLng([user.location.latitude, user.location.longitude])
       markers.value[user.id].setPopupContent(createPopupContent(user))
     } else {
-      markers.value[user.id] = L.marker([user.location.latitude, user.location.longitude])
-        .bindPopup(createPopupContent(user))
-        .addTo(map.value)
+      markers.value[user.id] = L.marker([user.location.latitude, user.location.longitude], {
+        icon: L.icon({
+          iconUrl: markerIconPng,
+          shadowUrl: markerShadowPng,
+          iconSize: [25, 41],
+          iconAnchor: [12, 41]
+        })
+      }).bindPopup(createPopupContent(user)).addTo(map.value)
     }
     if (selection.value?.userId === user.id && user.tracking?.length > 1) {
       const coordinates = user.tracking.map(p => [p.location.latitude, p.location.longitude])
