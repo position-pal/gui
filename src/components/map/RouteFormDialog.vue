@@ -81,7 +81,8 @@ import { useGroupMapStore } from '@/stores/groupMapStore.js'
 import { formatToISO } from '@/scripts/utils.js'
 import { useLocationStore } from '@/stores/locationStore.js'
 import { fetchCoordinates } from '@/scripts/geo.js'
-import { getLoggedInUser } from '@/scripts/user.js'
+import { getLoggedInUser, isTestUser } from '@/scripts/user.js'
+import { getMockedPosition } from '@/scripts/mocked-location.js'
 
 const emit = defineEmits(['close', 'submit'])
 const userGroupsStore = useUserGroupsStore()
@@ -167,7 +168,7 @@ async function submitForm() {
       timestamp: new Date().toISOString(),
       user: userId,
       group: groupId,
-      position: currentLocation,
+      position: isTestUser() ? getMockedPosition().coordinates : currentLocation,
       mode: "Walking",
       destination: destination,
       expectedArrival: eta

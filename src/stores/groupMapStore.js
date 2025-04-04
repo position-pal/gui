@@ -98,7 +98,7 @@ export const useGroupMapStore = defineStore('groupMap', () => {
   function updateUserSession(userId, sessionData) {
     const oldSession = sessions.value[userId];
     let trackedLocations = [];
-    if (sessionData.state === 'SOS' || sessionData.state === 'ROUTING') {
+    if (sessionData.state === 'SOS' || sessionData.state === 'ROUTING' || sessionData === 'WARNING') {
       trackedLocations = oldSession.tracking;
       trackedLocations.push({ location: sessionData.location, timestamp: sessionData.lastSeen });
     }
