@@ -75,7 +75,7 @@ jobs:
         run: |
           sshpass -e scp -o StrictHostKeyChecking=no build.tar.gz ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_HOST }}:/tmp/build.tar.gz
       - name: Extract and deploy on Droplet
-        uses: appleboy/ssh-action@b838bc2f27cd449b957159452d432aff91697637 # master
+        uses: appleboy/ssh-action@7e02feefebc6ca42b6f780195f49a01bb98a39bf # master
         with:
           host: ${{ secrets.DROPLET_HOST }}
           username: ${{ secrets.DROPLET_USERNAME }}
